@@ -14,7 +14,6 @@ server_socket.listen(1)
 print(f"Connection {host}:{port}")
 
 conn,addr = server_socket.accept()
-#print("Connection from "+addr)
 
 
 session = loadSession.session
@@ -25,6 +24,7 @@ tel = lando.get_telemetry()
 car_Tel = lando.get_car_data()
 pos_data = lando.get_pos_data()
 
+print(pos_data)
 
 rpm = car_Tel['RPM']
 Speed = car_Tel['Speed']
@@ -42,6 +42,7 @@ air_temp = lap_weather['AirTemp']
 track_temp = lap_weather['TrackTemp']
 humidity = lap_weather['Humidity']
 wind_speed = lap_weather['WindSpeed']
+weather = [air_temp,track_temp,humidity,wind_speed]
 
 x = pos_data['X']
 y = pos_data['Y']
@@ -52,9 +53,7 @@ try:
     for i in range(len(times)):
         if i < len(times) - 1:
             diff = times[i+1] - times[i]
-            data = {'RPM':float(rpm[i]), 'Speed':float(Speed[i]),'Gear':float(gear[i]),'Throttle':float(throttle[i]),'Brake': float(brake[i]),'Time':float(times[i].total_seconds())}
-            message = json.dumps(data) +"\n"
-            conn.sendall(message.encode('utf-8'))
+            data = {'RPM':float(rpm[i]), 'Speed':float(Speed[i]),'Gear':float(gear[i]),'Throttle':float(throttle[i]),'Brake': float(brake[i]),'Time':float(times[i].total_seconds()),'Weather':weather}
             time.sleep(diff.total_seconds())
 
     

@@ -4,24 +4,46 @@ port = 65432;
 % Create TCP/IP client
 t = tcpclient(host, port);
 
-disp('Connected to Python server.')
+disp('Connected to Python server.');
 
-% Read data until connection is closed
+x = 0; x2 = 0; x3 = 0;
+y = 0; y2 = 0; y3 = 0;
+
 while true
     try
-        % Wait until data is available
         if t.NumBytesAvailable > 0
-            raw = readline(t);  % read one line
+            raw = readline(t); 
             jsonStr = char(raw);
             
-            % Parse JSON string into a MATLAB struct
             data = jsondecode(jsonStr);
+            Time = data.Time;
+            rpm = data.RPM;
+            speed = data.Speed;
+            throttle = data.Throttle;
+            brake = data.Brake;
+            weather = data.Weather;
+            posData = data.PosData; 
             
-            % Display telemetry
-            fprintf('Time: %.1f | RPM: %d | Speed: %.1f | Throttle: %.1f | Brake: %.1f\n', ...
-                    data.Time, data.RPM, data.Speed, data.Throttle, data.Brake);
+            if y2 == 0
+                y2 = y;
+                x2 = x;
+            else
+                y3 = y2;
+                x3 = x2;
+                y2 = y;
+                x2 = x;
+            end
+
+            x = posData(1); 
+            y = posData(2);
+
+          s
+            if y3 ~= 0
+                gf = gforce(x, x2, x3, y, y2, y3, speed);
+                fprintf('G-Force: %.2f g\n', gf);
+            end
         else
-            pause(0.05);  % avoid tight loop
+            pause(0.05); 
         end
     catch e
         warning("Connection closed or error occurred: %s", e.message);
@@ -29,4 +51,22 @@ while true
     end
 end
 
-clear t  % Close connection
+clear t 
+
+function gf = gforce(x1, x2, x3, y1, y2, y3, speed)
+    A = [x1, y1, 1;
+         x2, y2, 1;
+         x3, y3, 1];
+    B = [-(x1^2 + y1^2);
+         -(x2^2 + y2^2);
+         -(x3^2 + y3^2)];
+    try
+        sol = A\B;
+        a = sol(1); b = sol(2); c = sol(3);
+        r = sqrt((a^2 + b^2)/4 - c);
+    catch
+        r = NaN;
+    end
+
+    gf = (speed^2 / r) / 9.8;
+end
