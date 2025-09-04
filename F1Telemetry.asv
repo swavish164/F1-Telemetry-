@@ -31,7 +31,6 @@ while true
             data = jsondecode(jsonStr);
             Time = data.Time;
             rpm = data.RPM;
-            gear = data.Gear;
             speed = data.Speed;
             throttle = data.Throttle;
             brake = data.Brake;
@@ -56,7 +55,7 @@ while true
                 [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
                 %fprintf('G-Force: %.2f g | Direction: %.1f\n', gf,angle_deg);
                 section = angle_deg / 36;
-
+                
             end
             c = (gf - gf_min) / (gf_max - gf_min);
             c = max(0, min(1, c)); % clamp
@@ -72,10 +71,6 @@ while true
         else
             pause(0.05); 
         end
-        jsonStr = jsonencode(data);
-
-% Send JSON
-        write(t, uint8([jsonStr newline]));
     catch e
         warning('Connection closed or error occurred: %s', e.message);
         break;
@@ -101,6 +96,7 @@ function [gf,angle_deg] = gforce(x1, x2, x3, y1, y2, y3, speed)
         xc = NaN;
         yc = NaN;
     end
+    %36 degrees 
     gf = (speed^2 / r) / 9.8;
     dx = x2 - xc;
     dy = y2 - yc;
