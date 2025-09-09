@@ -72,9 +72,9 @@ while true
         else
             pause(0.05); 
         end
+        %data.Gforce = gf;
+        %data.GforceAngle = angle_deg;
         jsonStr = jsonencode(data);
-
-% Send JSON
         write(t, uint8([jsonStr newline]));
     catch e
         warning('Connection closed or error occurred: %s', e.message);
