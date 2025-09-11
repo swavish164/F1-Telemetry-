@@ -1,4 +1,5 @@
-import logo from './logo.svg';
+
+/*import logo from './logo.svg';
 import './App.css';
 
 function App() {
@@ -23,3 +24,37 @@ function App() {
 }
 
 export default App;
+*/
+import { useEffect, useState } from "react";
+
+export default function TelemetryViewer() {
+  const [telemetry, setTelemetry] = useState(null);
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:8000/frontend");
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setTelemetry(data);
+    };
+
+    socket.onopen = () => {
+      console.log("Connected to FastAPI backend");
+    };
+
+    return () => socket.close();
+  }, []);
+
+  if (!telemetry) return <p>Waiting for data...</p>;
+
+  return (
+    <div>
+      <h2>Live Telemetry</h2>
+      <p>Speed: {telemetry.Speed} km/h</p>
+      <p>RPM: {telemetry.RPM}</p>
+      <p>G-Force: {telemetry.GForce?.toFixed(2)} g</p>
+    </div>
+  );
+}
+
+

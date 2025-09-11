@@ -89,10 +89,12 @@ async def run():
                 processed = response.decode("utf-8").strip()
 
                 # Forward to FastAPI websocket
+                print("Processed data : " + processed)
+                await asyncio.sleep(diff.total_seconds())
                 await ws.send(processed)
 
                 # Simulate real-time interval
-                time.sleep(diff.total_seconds())
+                
 
         server_socket.close()
 

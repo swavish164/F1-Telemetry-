@@ -19,9 +19,11 @@ async def frontend_socket(ws: WebSocket):
 @app.websocket("/matlab")
 async def matlab_socket(ws: WebSocket):
     await ws.accept()
+    print("receiving")
     try:
         while True:
             data = await ws.receive_text()
+            print("Got from MATLAB:", data)
             # Forward MATLAB/telemetry data to frontend clients
             for client in clients:
                 await client.send_text(data)

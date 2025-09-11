@@ -6,7 +6,6 @@ t = tcpclient(host, port);
 
 disp('Connected to Python server.');
 
-
 figure;
 hold on;
 axis equal;
@@ -37,11 +36,13 @@ while true
             brake = data.Brake;
             weather = data.Weather;
             posData = data.PosData; 
+            
+            % --- shift history
             if y~=0 && y2~=0
-                    y3 = y2;
-                    x3 = x2;
-                    y2 = y;
-                    x2 = x;
+                y3 = y2;
+                x3 = x2;
+                y2 = y;
+                x2 = x;
             else
                 if y2 == 0 && y ~= 0
                     y2 = y;
@@ -52,30 +53,30 @@ while true
             x = posData(1); 
             y = posData(2);
 
+            gf = NaN;
+            angle_deg = NaN;
+
+            % --- only compute when we have enough history ---
             if y3 ~= 0
                 [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
-                %fprintf('G-Force: %.2f g | Direction: %.1f\n', gf,angle_deg);
                 section = angle_deg / 36;
-
+                data.Gforce = gf;
+                data.GforceAngle = angle_deg;
+            else
+                data.Gforce = NaN;
+                data.GforceAngle = NaN;
             end
-            c = (gf - gf_min) / (gf_max - gf_min);
-            c = max(0, min(1, c)); % clamp
-            color = [c, 0, 1-c];   % Purple (low) → Blue (high)
 
-            % Draw line segment if previous point exists
-            if ~isnan(x_prev)
-                plot([x_prev, x], [y_prev, y], 'Color', color, 'LineWidth', 2);
-                drawnow limitrate
-            end
+            % --- Send only once per loop after update ---
+            jsonStrOut = jsonencode(data);
+            write(t, uint8([jsonStrOut newline]));
+
+            % update previous point
             x_prev = x;
             y_prev = y;
         else
             pause(0.05); 
         end
-        %data.Gforce = gf;
-        %data.GforceAngle = angle_deg;
-        jsonStr = jsonencode(data);
-        write(t, uint8([jsonStr newline]));
     catch e
         warning('Connection closed or error occurred: %s', e.message);
         break;
@@ -105,5 +106,5 @@ function [gf,angle_deg] = gforce(x1, x2, x3, y1, y2, y3, speed)
     dx = x2 - xc;
     dy = y2 - yc;
     angle_deg = rad2deg(atan2(dy, dx));
-
 end
+
