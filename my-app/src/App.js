@@ -1,60 +1,52 @@
-
-/*import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
 
 function App() {
+  const [telemetry, setTelemetry] = useState(null);
+
+  useEffect(() => {
+    // Connect to FastAPI websocket
+    const ws = new WebSocket("ws://localhost:8000/frontend");
+
+    ws.onopen = () => {
+      console.log("Connected to FastAPI WebSocket");
+      // Send keep-alive messages (backend expects receive_text)
+      setInterval(() => {
+        ws.send("ping");
+      }, 5000);
+    };
+
+    ws.onmessage = (event) => {
+      console.log("Received:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        setTelemetry(data);
+      } catch (err) {
+        console.error("Invalid JSON:", err);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("Disconnected from WebSocket");
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ padding: "20px" }}>
+      <h1>Live Telemetry</h1>
+      {telemetry ? (
+        <pre>{JSON.stringify(telemetry, null, 2)}</pre>
+      ) : (
+        <p>Waiting for data...</p>
+      )}
     </div>
   );
 }
 
 export default App;
-*/
-import { useEffect, useState } from "react";
 
-export default function TelemetryViewer() {
-  const [telemetry, setTelemetry] = useState(null);
-
-  useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8000/frontend");
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setTelemetry(data);
-    };
-
-    socket.onopen = () => {
-      console.log("Connected to FastAPI backend");
-    };
-
-    return () => socket.close();
-  }, []);
-
-  if (!telemetry) return <p>Waiting for data...</p>;
-
-  return (
-    <div>
-      <h2>Live Telemetry</h2>
-      <p>Speed: {telemetry.Speed} km/h</p>
-      <p>RPM: {telemetry.RPM}</p>
-      <p>G-Force: {telemetry.GForce?.toFixed(2)} g</p>
-    </div>
-  );
-}
 
 

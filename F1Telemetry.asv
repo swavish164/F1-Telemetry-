@@ -62,16 +62,7 @@ while true
             
 
             if ~weather_sent
-                packet = struct("type","init",...
-                    "weather",{weather},...
-                    "data",data);
-                disp(weather);
-                weather_sent = true
-            else
-                packet = struct("type","update",...
-                    "data",data);
-            end
-            jsonStrOut = jsonencode(packet);
+            jsonStrOut = jsonencode(data);
             write(t, uint8([jsonStrOut newline]));
 
 

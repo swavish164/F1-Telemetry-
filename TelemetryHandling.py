@@ -6,6 +6,7 @@ import websockets
 import fastf1
 import pandas as pd
 import loadSession
+import numpy as np
 
 
 async def run():
@@ -28,15 +29,8 @@ async def run():
 
         car_Tel = lando.get_car_data()
         pos_data = lando.get_pos_data()
-        weather_data = session.weather_data
-
+        lap_weather = lando.get_weather_data()
         # Merge weather + car telemetry
-        lap_weather = pd.merge_asof(
-            car_Tel.sort_values('Time'),
-            weather_data.sort_values('Time'),
-            on='Time',
-            direction='nearest'
-        )
 
         # Extract arrays
         rpm = car_Tel['RPM']
@@ -46,10 +40,12 @@ async def run():
         brake = car_Tel['Brake']
         times = car_Tel['Time']
 
-        air_temp = lap_weather['AirTemp']
-        track_temp = lap_weather['TrackTemp']
-        humidity = lap_weather['Humidity']
-        wind_speed = lap_weather['WindSpeed']
+        weather = lap_weather.tolist()
+        weather = weather[1:]
+        weather = [float(x) if isinstance(x, (np.float32, np.float64)) 
+           else int(x) if isinstance(x, (np.int32, np.int64)) 
+           else bool(x) if isinstance(x, (np.bool_,)) 
+           else x for x in weather[1:]]
 
         x = pos_data['X']
         y = pos_data['Y']
@@ -68,17 +64,16 @@ async def run():
                     'Throttle': float(throttle.iloc[i]),
                     'Brake': float(brake.iloc[i]),
                     'Time': float(times.iloc[i].total_seconds()),
-                    'Weather': [
-                        float(air_temp.iloc[i]),
-                        float(track_temp.iloc[i]),
-                        float(humidity.iloc[i]),
-                        float(wind_speed.iloc[i])
-                    ],
                     'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])]
                 }
-
+                if i == 0:
+                    payload = {
+                        "type":"init", "weather": weather, "data": data
+                    }
+                else:
+                    payload = {"type":"update","data":data }
                 # --- Send raw data to MATLAB ---
-                json_str = json.dumps(data) + "\n"
+                json_str = json.dumps(payload) + "\n"
                 conn.sendall(json_str.encode("utf-8"))
 
                 # --- Receive processed data from MATLAB ---
@@ -101,69 +96,3 @@ async def run():
 
 if __name__ == "__main__":
     asyncio.run(run())
-
-
-
-"""
-import  json, time, pandas as pd
-import loadSession
-import websockets, asyncio
-
-
-
-
-async def run():
-    uri = "ws://localhost:8000/matlab"
-    async with websockets.connect(uri) as ws:
-      session = loadSession.session
-      lando = session.laps.pick_drivers('4').pick_fastest()
-
-      circuit_info = session.get_circuit_info()
-      tel = lando.get_telemetry()
-      car_Tel = lando.get_car_data()
-      pos_data = lando.get_pos_data()
-
-
-      rpm = car_Tel['RPM']
-      Speed = car_Tel['Speed']
-      gear = car_Tel['nGear']
-      throttle = car_Tel['Throttle']
-      brake = car_Tel['Brake']
-      times = car_Tel['Time']
-
-
-      weather_data = session.weather_data
-
-      lap_weather = pd.merge_asof(
-            car_Tel.sort_values('Time'),
-            weather_data.sort_values('Time'),
-            on='Time',
-            direction='nearest'
-        )
-
-      air_temp = lap_weather['AirTemp']
-      track_temp = lap_weather['TrackTemp']
-      humidity = lap_weather['Humidity']
-      wind_speed = lap_weather['WindSpeed']
-
-      x = pos_data['X']
-      y = pos_data['Y']
-      z = pos_data['Z']
-      current = 0
-      for i in range(len(times)):
-        if i < len(times) - 1:
-          diff = times[i+1] - times[i]
-          data = {'RPM':float(rpm[i]),
-              'Speed':float(Speed[i]),
-              'Gear':float(gear[i]),
-              'Throttle':float(throttle[i]),
-              'Brake': float(brake[i]),
-              'Time':float(times[i].total_seconds()),
-              'Weather':[air_temp.iloc[i],track_temp.iloc[i],humidity.iloc[i],wind_speed.iloc[i]],
-              'PosData': [x[i],y[i],z[i]]}
-          await ws.send(json.dumps(data))
-          await asyncio.sleep(diff.total_seconds())
-asyncio.run(run())
-"""
-    
-    

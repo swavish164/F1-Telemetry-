@@ -12,7 +12,8 @@ async def frontend_socket(ws: WebSocket):
     clients.append(ws)
     try:
         while True:
-            await ws.receive_text()  # keep alive
+            msg = await ws.receive_text()  # keep alive
+            print("Frontend keep-alive:", msg)
     except WebSocketDisconnect:
         clients.remove(ws)
 
@@ -23,7 +24,6 @@ async def matlab_socket(ws: WebSocket):
     try:
         while True:
             data = await ws.receive_text()
-            print("Got from MATLAB:", data)
             # Forward MATLAB/telemetry data to frontend clients
             for client in clients:
                 await client.send_text(data)
