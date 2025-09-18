@@ -29,6 +29,7 @@ while true
 
             if packet.type == "init"
                 weather = packet.weather;
+                track = packet.track;
             end
             
             % --- shift history
@@ -64,9 +65,9 @@ while true
             if ~weather_sent
                 packet = struct("type","init",...
                     "weather",{weather},...
+                    "track",{track},...
                     "data",data);
-                disp(weather);
-                weather_sent = true
+                weather_sent = true;
             else
                 packet = struct("type","update",...
                     "data",data);

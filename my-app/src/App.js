@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import Chart from 'chart.js/auto';
 
 function TelemetryView() {
   const [messages, setMessages] = useState([]);
@@ -6,6 +7,8 @@ function TelemetryView() {
     weather: null,
     current: null
   });
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
 
   useEffect(() => {
     // Connect to FastAPI websocket
@@ -21,7 +24,8 @@ function TelemetryView() {
         
         if (parsed.type === "init") {
           // Extract weather data
-          const [airTemp, pressure, rainfall, humidity,trackTemp, windDirection, windSpeed] = parsed.weather;
+          const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.weather;
+          const track = parsed.track;
           const weatherData = {
             airTemp,
             humidity,
@@ -46,9 +50,15 @@ function TelemetryView() {
           };
           
           setTelemetryData({
+            track: track,
             weather: weatherData,
             current: telemetry
           });
+          
+          // Initialize chart if track data is available
+          if (track && chartRef.current) {
+            initializeChart(track);
+          }
           
         } else if (parsed.type === "update") {
           // Update only the telemetry data for updates
@@ -76,6 +86,7 @@ function TelemetryView() {
           timestamp: new Date().toISOString()
         }]);
         
+        
       } catch (error) {
         console.error("Failed to parse message:", error);
         setMessages((prev) => [...prev, {
@@ -88,13 +99,73 @@ function TelemetryView() {
 
     ws.onclose = () => console.log("Disconnected from FastAPI");
 
-    return () => ws.close();
+    return () => {
+      ws.close();
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
   }, []);
+
+  const initializeChart = (trackData) => {
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext('2d');
+    
+    // Extract X and Y coordinates from track data
+    const xData = trackData.map(point => point[0]);
+    const yData = trackData.map(point => point[1]);
+
+    chartInstance.current = new Chart(ctx, {
+      type: "scatter",
+      data: {
+        datasets: [{
+          label: 'Track Layout',
+          data: trackData.map(point => ({x: point[0], y: point[1]})),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          pointRadius: 2,
+          showLine: true,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: {
+              display: true,
+              text: 'X Position'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Y Position'
+            }
+          }
+        }
+      }
+    });
+  };
 
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Telemetry Data</h1>
       
+      {/* Track Graph at the top */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
+        <div style={{ height: '400px', width: '100%' }}>
+          <canvas ref={chartRef} id="trackChart" />
+        </div>
+      </div>
+
       {/* Weather Data Display */}
       {telemetryData.weather && (
         <div className="mb-6 p-4 bg-green-50 rounded-lg">
@@ -104,7 +175,7 @@ function TelemetryView() {
             <div><strong>Pressure:</strong> {telemetryData.weather.pressure}hPa</div>
             <div><strong>Rainfall:</strong> {telemetryData.weather.rainfall ? "Yes" : "No"}</div>
             <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
-            <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}%</div>
+            <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
             <div><strong>Wind Speed:</strong> {telemetryData.weather.windSpeed}m/s</div>
             <div><strong>Wind Direction:</strong> {telemetryData.weather.windDirection}°</div>
           </div>
@@ -126,20 +197,9 @@ function TelemetryView() {
         </div>
       )}
       
-      
       {/* Raw Message History */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Raw Message History</h2>
-        <pre className="bg-gray-100 p-4 rounded max-h-96 overflow-auto text-xs">
-          {JSON.stringify(messages, null, 2)}
-        </pre>
-      </div>
     </div>
   );
 }
 
 export default TelemetryView;
-
-
-
-
