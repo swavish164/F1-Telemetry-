@@ -8,7 +8,6 @@ disp('Connected to Python server.');
 
 x = 0; x2 = 0; x3 = 0;
 y = 0; y2 = 0; y3 = 0;
-weather_sent = false;
 
 while true
     try
@@ -26,11 +25,6 @@ while true
             throttle = data.Throttle;
             brake = data.Brake;
             posData = data.PosData; 
-
-            if packet.type == "init"
-                weather = packet.weather;
-                track = packet.track;
-            end
             
             % --- shift history
             if y~=0 && y2~=0
@@ -61,17 +55,8 @@ while true
                 data.GforceAngle = NaN;
             end
             
-
-            if ~weather_sent
-                packet = struct("type","init",...
-                    "weather",{weather},...
-                    "track",{track},...
+            packet = struct("type","update",...
                     "data",data);
-                weather_sent = true;
-            else
-                packet = struct("type","update",...
-                    "data",data);
-            end
             jsonStrOut = jsonencode(packet);
             write(t, uint8([jsonStrOut newline]));
 

@@ -2,122 +2,151 @@ import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
 function TelemetryView() {
-  const [messages, setMessages] = useState([]);
+  const [trackLength] = useState(null)
+  const [messages, setMessages,setTrackPoints] = useState([]);
   const [telemetryData, setTelemetryData] = useState({
     weather: null,
-    current: null
+    current: null,
+    track: null
   });
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
+  const ws = useRef(null);
 
   useEffect(() => {
-    // Connect to FastAPI websocket
-    const ws = new WebSocket("ws://localhost:8000/frontend");
-
-    ws.onopen = () => {
-      setInterval(() => ws.send("ping"), 5000);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const parsed = JSON.parse(event.data);
-        
-        if (parsed.type === "init") {
-          // Extract weather data
-          const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.weather;
-          const track = parsed.track;
-          const weatherData = {
-            airTemp,
-            humidity,
-            pressure,
-            rainfall,
-            trackTemp,
-            windDirection,
-            windSpeed,
-          };
-          
-          // Extract telemetry data
-          const telemetry = {
-            RPM: parsed.data.RPM,
-            Speed: parsed.data.Speed,
-            Gear: parsed.data.Gear,
-            Throttle: parsed.data.Throttle,
-            Brake: parsed.data.Brake,
-            Time: parsed.data.Time,
-            PosData: parsed.data.PosData,
-            Gforce: parsed.data.Gforce,
-            GforceAngle: parsed.data.GforceAngle || parsed.data.GforceDir
-          };
-          
-          setTelemetryData({
-            track: track,
-            weather: weatherData,
-            current: telemetry
-          });
-          
-          // Initialize chart if track data is available
-          if (track && chartRef.current) {
-            initializeChart(track);
-          }
-          
-        } else if (parsed.type === "update") {
-          // Update only the telemetry data for updates
-          const telemetry = {
-            RPM: parsed.data.RPM,
-            Speed: parsed.data.Speed,
-            Gear: parsed.data.Gear,
-            Throttle: parsed.data.Throttle,
-            Brake: parsed.data.Brake,
-            Time: parsed.data.Time,
-            PosData: parsed.data.PosData,
-            Gforce: parsed.data.Gforce,
-            GforceAngle: parsed.data.GforceAngle || parsed.data.GforceDir
-          };
-          
-          setTelemetryData(prev => ({
-            ...prev,
-            current: telemetry
-          }));
-        }
-        
-        // Always add to message history
-        setMessages((prev) => [...prev, {
-          ...parsed,
-          timestamp: new Date().toISOString()
-        }]);
-        
-        
-      } catch (error) {
-        console.error("Failed to parse message:", error);
-        setMessages((prev) => [...prev, {
-          raw: event.data,
-          timestamp: new Date().toISOString(),
-          error: true
-        }]);
-      }
-    };
-
-    ws.onclose = () => console.log("Disconnected from FastAPI");
+    connectWebSocket();
 
     return () => {
-      ws.close();
+      if (ws.current) {
+        ws.current.close();
+      }
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
     };
   }, []);
 
+  const connectWebSocket = () => {
+    try {
+      setConnectionStatus('Connecting...');
+      ws.current = new WebSocket("ws://localhost:8000/frontend");
+
+      ws.current.onopen = () => {
+        console.log("WebSocket connected successfully");
+        setConnectionStatus('Connected');
+        // Don't send ping immediately, wait for connection to stabilize
+        setTimeout(() => {
+          if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send("ping");
+          }
+        }, 1000);
+      };
+
+      ws.current.onmessage = (event) => {
+        console.log("Raw message received:", event.data);
+        
+        // First, try to handle as JSON
+        try {
+          const parsed = JSON.parse(event.data);
+          handleParsedMessage(parsed);
+        } catch (error) {
+          // If JSON parsing fails, check if it's a simple string message
+          console.log(error)
+        }
+      };
+
+      ws.current.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        setConnectionStatus('Error');
+      };
+
+      ws.current.onclose = (event) => {
+        console.log("WebSocket disconnected:", event.code, event.reason);
+        setConnectionStatus('Disconnected');
+        
+        // Attempt reconnection after 3 seconds
+        setTimeout(() => {
+          if (!ws.current || ws.current.readyState === WebSocket.CLOSED) {
+            connectWebSocket();
+          }
+        }, 3000);
+      };
+
+    } catch (error) {
+      console.error("Failed to create WebSocket:", error);
+      setConnectionStatus('Failed to connect');
+    }
+  };
+
+  const handleParsedMessage = (parsed) => {
+    console.log("Parsed message:", parsed);
+    
+    if (parsed.type === "weather") {
+      console.log("Init")
+      // Extract weather data
+      const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.data || [];
+      const weatherData = {
+        airTemp,
+        humidity,
+        pressure,
+        rainfall,
+        trackTemp,
+        windDirection,
+        windSpeed,
+      };
+      
+      
+    }else if (parsed.type === "track_init") {
+      trackLength() = parsed.length;
+      setTrackPoints([]);
+
+      
+    }else if (parsed.type === "track") {
+      const track = parsed.data
+      setTrackPoints = setTrackPoints + track
+      if(setTrackPoints.length == trackLength){
+        initializeChart(setTrackPoints);
+      }
+      
+    } else if (parsed.type === "update") {
+      // Update only the telemetry data for updates
+      const telemetry = {
+        RPM: parsed.data?.RPM,
+        Speed: parsed.data?.Speed,
+        Gear: parsed.data?.Gear,
+        Throttle: parsed.data?.Throttle,
+        Brake: parsed.data?.Brake,
+        Time: parsed.data?.Time,
+        PosData: parsed.data?.PosData,
+        Gforce: parsed.data?.Gforce,
+        GforceAngle: parsed.data?.GforceAngle || parsed.data?.GforceDir
+      };
+      
+      setTelemetryData(prev => ({
+        ...prev,
+        current: telemetry
+      }));
+    } 
+    
+
+  };
+
+
   const initializeChart = (trackData) => {
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
 
+    // Check if trackData is valid
+    if (!trackData || !Array.isArray(trackData) || trackData.length === 0) {
+      console.error("Invalid track data:", trackData);
+      return;
+    }
+
     const ctx = chartRef.current.getContext('2d');
     
-    // Extract X and Y coordinates from track data
-    const xData = trackData.map(point => point[0]);
-    const yData = trackData.map(point => point[1]);
-
+    
     chartInstance.current = new Chart(ctx, {
       type: "scatter",
       data: {
@@ -154,11 +183,13 @@ function TelemetryView() {
     });
   };
 
+
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Telemetry Data</h1>
       
-      {/* Track Graph at the top */}
+
+      {/* Track Graph */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
         <div style={{ height: '400px', width: '100%' }}>
@@ -166,7 +197,24 @@ function TelemetryView() {
         </div>
       </div>
 
-      {/* Weather Data Display */}
+      {/* Debug Information */}
+      <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
+        <h2 className="text-lg font-semibold mb-3">Debug Info</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div><strong>Connection:</strong> {connectionStatus}</div>
+          <div><strong>Track Data:</strong> {telemetryData.track ? `${telemetryData.track.length} points` : 'No data'}</div>
+          <div><strong>Messages Received:</strong> {messages.length}</div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+export default TelemetryView;
+
+/*
+
       {telemetryData.weather && (
         <div className="mb-6 p-4 bg-green-50 rounded-lg">
           <h2 className="text-lg font-semibold mb-3">Weather Conditions</h2>
@@ -182,7 +230,6 @@ function TelemetryView() {
         </div>
       )}
 
-      {/* Current Telemetry Display */}
       {telemetryData.current && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <h2 className="text-lg font-semibold mb-3">Current Telemetry</h2>
@@ -196,10 +243,4 @@ function TelemetryView() {
           </div>
         </div>
       )}
-      
-      {/* Raw Message History */}
-    </div>
-  );
-}
-
-export default TelemetryView;
+*/

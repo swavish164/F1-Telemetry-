@@ -11,34 +11,24 @@ import numpy as np
 
 async def run():
     # Connect to FastAPI websocket
+    uri = "ws://localhost:8000/frontend"
+
     uri = "ws://localhost:8000/matlab"
+
     async with websockets.connect(uri) as ws:
+
         def rotate(xy, *, angle):
             rot_mat = np.array([
                 [np.cos(angle), np.sin(angle)],
                 [-np.sin(angle), np.cos(angle)]
             ])
             return np.matmul(xy, rot_mat)
-
-        # --- Setup TCP server for MATLAB ---
-        host, port = '127.0.0.1', 65432
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind((host, port))
-        server_socket.listen(1)
-        print(f"Waiting for MATLAB on {host}:{port} ...")
-
-        conn, addr = server_socket.accept()
-        print("MATLAB connected:", addr)
-
-        # --- Load telemetry data from FastF1 ---
         session = loadSession.session
-        lando = session.laps.pick_drivers('4').pick_fastest()
-        circuit_info = session.get_circuit_info()
-        car_Tel = lando.get_car_data()
-        pos_data = lando.get_pos_data()
 
-        # Track info
+        lando = session.laps.pick_drivers('4').pick_fastest()
+        pos_data = lando.get_pos_data()
         track = pos_data.loc[:, ('X', 'Y')].to_numpy()
+        circuit_info = session.get_circuit_info()
         track_angle = circuit_info.rotation / 180 * np.pi
         rotated_track = rotate(track, angle=track_angle)
 
@@ -54,9 +44,30 @@ async def run():
             for x in weather[1:]
         ]
 
+        await ws.send(json.dumps({"type": "weather", "data": weather}))
+
+        track_length = len(rotated_track)
+        await ws.send(json.dumps({"type": "track_init", "length": track_length}))
+        for i in range(0, track_length, 10):
+            chunk = rotated_track[i:i+10].tolist()
+            await ws.send(json.dumps({"type": "track", "data": chunk}))
+
+        # --- Setup TCP server for MATLAB ---
+        host, port = '127.0.0.1', 65432
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.bind((host, port))
+        server_socket.listen(1)
+        print(f"Waiting for MATLAB on {host}:{port} ...")
+
+        conn, addr = server_socket.accept()
+        print("MATLAB connected:", addr)
+
+        # --- Load telemetry data from FastF1 ---
+        car_Tel = lando.get_car_data()
+
         # Car telemetry
         rpm = car_Tel['RPM']
-        Speed = car_Tel['Speed']
+        speed = car_Tel['Speed']
         gear = car_Tel['nGear']
         throttle = car_Tel['Throttle']
         brake = car_Tel['Brake']
@@ -74,7 +85,7 @@ async def run():
                 # Build raw data
                 data = {
                     'RPM': float(rpm.iloc[i]),
-                    'Speed': float(Speed.iloc[i]),
+                    'Speed': float(speed.iloc[i]),
                     'Gear': float(gear.iloc[i]),
                     'Throttle': float(throttle.iloc[i]),
                     'Brake': float(brake.iloc[i]),
@@ -82,15 +93,7 @@ async def run():
                     'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])]
                 }
 
-                if i == 0:
-                    payload = {
-                        "type": "init",
-                        "weather": weather,
-                        "track": rotated_track.tolist(),
-                        "data": data
-                    }
-                else:
-                    payload = {"type": "update", "data": data}
+                payload = {"type": "update", "data": data}
 
                 # --- Send to MATLAB ---
                 json_str = json.dumps(payload) + "\n"
