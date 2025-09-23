@@ -2,8 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
 function TelemetryView() {
-  const [trackLength] = useState(null)
-  const [messages, setMessages,setTrackPoints] = useState([]);
+  const [trackLength,setTrackLength] = useState(null);
+  const [driverColour,setDriverColour] = useState(null);
+  const [trackPoints,setTrackPoints] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [telemetryData, setTelemetryData] = useState({
     weather: null,
     current: null,
@@ -26,6 +28,13 @@ function TelemetryView() {
       }
     };
   }, []);
+
+
+  useEffect(() => {
+    if ((trackPoints.length === trackLength) && (trackPoints.length > 0)) {
+      initializeChart(trackPoints);
+    }
+  }, [trackPoints, trackLength]);
 
   const connectWebSocket = () => {
     try {
@@ -80,10 +89,8 @@ function TelemetryView() {
   };
 
   const handleParsedMessage = (parsed) => {
-    console.log("Parsed message:", parsed);
     
     if (parsed.type === "weather") {
-      console.log("Init")
       // Extract weather data
       const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.data || [];
       const weatherData = {
@@ -95,19 +102,20 @@ function TelemetryView() {
         windDirection,
         windSpeed,
       };
+      setTelemetryData(prev => ({...prev, weather: weatherData}));
       
       
     }else if (parsed.type === "track_init") {
-      trackLength() = parsed.length;
+      setTrackLength(parsed.length);
       setTrackPoints([]);
+      setDriverColour(parsed.colour);
 
       
     }else if (parsed.type === "track") {
-      const track = parsed.data
-      setTrackPoints = setTrackPoints + track
-      if(setTrackPoints.length == trackLength){
-        initializeChart(setTrackPoints);
-      }
+      setTrackPoints(prevPoints => {
+        const newPoints = [...prevPoints, ...parsed.data];
+        return newPoints;
+      });
       
     } else if (parsed.type === "update") {
       // Update only the telemetry data for updates
@@ -151,11 +159,12 @@ function TelemetryView() {
       type: "scatter",
       data: {
         datasets: [{
-          label: 'Track Layout',
+          label: '',
           data: trackData.map(point => ({x: point[0], y: point[1]})),
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          pointRadius: 2,
+          backgroundColor: driverColour,
+          borderColor: driverColour,
+          borderWidth: 5,
+          pointRadius: 0,
           showLine: true,
           fill: false
         }]
@@ -167,18 +176,36 @@ function TelemetryView() {
           x: {
             type: 'linear',
             position: 'bottom',
-            title: {
-              display: true,
-              text: 'X Position'
-            }
+            //ticks: {
+              //display: false
+            //},
+            //border: {
+              //color: 'black',
+              //width: 5
+            //},
+            //title: {
+              //display: false,
+              //text: 'X Position'
+              display: false
+            //}
           },
           y: {
+            /*
             title: {
-              display: true,
+              display: false,
               text: 'Y Position'
+            },
+            ticks: {
+              display: false
+            },
+            border: {
+              color: 'black', 
+              width: 5
             }
+              */
+            display: false
           }
-        }
+        },
       }
     });
   };
@@ -192,18 +219,12 @@ function TelemetryView() {
       {/* Track Graph */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
-        <div style={{ height: '400px', width: '100%' }}>
+        <div className="chart-container" style={{ height: '400px', width: '80%' }}>
           <canvas ref={chartRef} id="trackChart" />
         </div>
-      </div>
-
-      {/* Debug Information */}
-      <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
-        <h2 className="text-lg font-semibold mb-3">Debug Info</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <div><strong>Connection:</strong> {connectionStatus}</div>
-          <div><strong>Track Data:</strong> {telemetryData.track ? `${telemetryData.track.length} points` : 'No data'}</div>
-          <div><strong>Messages Received:</strong> {messages.length}</div>
+        <div style={{ height: '400px', width: '20%', padding:'80%' }}>
+          <div><strong>Air Temp:</strong> {telemetryData.weather[0]}°C</div>
+          <div><strong>Pressure:</strong> {telemetryData.weather[2]}hPa</div>
         </div>
       </div>
 

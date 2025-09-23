@@ -4,6 +4,7 @@ import socket
 import asyncio
 import websockets
 import fastf1
+import fastf1.plotting
 import pandas as pd
 import loadSession
 import numpy as np
@@ -34,6 +35,7 @@ async def run():
 
         # Weather (single row from session.weather_data)
         lap_weather = lando.get_weather_data()
+        colour = fastf1.plotting.get_driver_color('NOR', session)
         weather = lap_weather.tolist()
         # Flatten and convert to native types
         weather = [
@@ -47,7 +49,7 @@ async def run():
         await ws.send(json.dumps({"type": "weather", "data": weather}))
 
         track_length = len(rotated_track)
-        await ws.send(json.dumps({"type": "track_init", "length": track_length}))
+        await ws.send(json.dumps({"type": "track_init", "length": track_length, "colour": colour}))
         for i in range(0, track_length, 10):
             chunk = rotated_track[i:i+10].tolist()
             await ws.send(json.dumps({"type": "track", "data": chunk}))
