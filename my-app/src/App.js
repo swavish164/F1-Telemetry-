@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
+
 function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
   const [driverColour,setDriverColour] = useState(null);
@@ -14,6 +15,8 @@ function TelemetryView() {
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
+  const windCompassRef = useRef(null);
+  const windCompassInstance = useRef(null);
   const ws = useRef(null);
 
   useEffect(() => {
@@ -32,9 +35,19 @@ function TelemetryView() {
 
   useEffect(() => {
     if ((trackPoints.length === trackLength) && (trackPoints.length > 0)) {
-      initializeChart(trackPoints);
+      initialiseTrackChart(trackPoints);
     }
   }, [trackPoints, trackLength]);
+
+    useEffect(() => {
+    initialiseThrottleChart(telemetryData.current.Throttle);
+  }, [telemetryData.current.Throttle]);
+
+  useEffect(() => {
+  if (telemetryData.weather) {
+    initialiseWindCompass(telemetryData.weather.windDirection, telemetryData.weather.windSpeed);
+  }
+}, [telemetryData.weather]);
 
   const connectWebSocket = () => {
     try {
@@ -97,7 +110,7 @@ function TelemetryView() {
         airTemp,
         humidity,
         pressure,
-        rainfall,
+        icon: rainfall ? "fas fa-cloud-showers-heavy" : "fas fa-sun",
         trackTemp,
         windDirection,
         windSpeed,
@@ -141,7 +154,7 @@ function TelemetryView() {
   };
 
 
-  const initializeChart = (trackData) => {
+  const initialiseTrackChart = (trackData) => {
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
@@ -210,58 +223,199 @@ function TelemetryView() {
     });
   };
 
+const initialiseWindCompass = (windDirection, windSpeed) => {
+  if (windCompassInstance.current) {
+    windCompassInstance.current.destroy();
+  }
+
+  const createWindVector = (bearing, speed) => {
+    const data = new Array(360).fill(0);
+    const normalizedBearing = bearing % 360;
+    data[normalizedBearing] = speed;
+    data[(normalizedBearing + 1) % 360] = speed * 0.3;
+    data[(normalizedBearing - 1 + 360) % 360] = speed * 0.3;
+    return data;
+  };
+
+  const windVector = createWindVector(windDirection, windSpeed);
+  const ctx = windCompassRef.current.getContext('2d');
+
+  windCompassInstance.current = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      datasets: [{
+        data: windVector,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        borderColor: 'white',
+        pointBackgroundColor: function(context) {
+          const index = context.dataIndex;
+          return index === windDirection % 360 ? '#FF6B6B' : 'transparent';
+        },
+        pointBorderColor: '#FF6B6B',
+        pointRadius: 4,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: function(tooltipItems) {
+              if (tooltipItems[0].parsed.r > 0) {
+                const bearing = tooltipItems[0].dataIndex;
+                const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+                const directionIndex = Math.round(bearing / 22.5) % 16;
+                return `${directions[directionIndex]} (${bearing}°)`;
+              }
+              return '';
+            },
+            label: function(context) {
+              if (context.parsed.r > 0) {
+                return `Wind Speed: ${context.parsed.r} m/s`;
+              }
+              return '';
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 50, // Adjust based on your expected max wind speed
+          ticks: {
+            display: false
+          },
+          angleLines: {
+            color: 'rgba(200, 200, 200, 0.3)',
+            lineWidth: 1
+          },
+          grid: {
+            color: 'rgba(200, 200, 200, 0.2)',
+            circular: true
+          },
+          /*
+          pointLabels: {
+            display: true,
+            centerPointLabels: true,
+            callback: function(value, index) {
+              const cardinalDirections = {
+                0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 
+                180: 'S', 225: 'SW', 270: 'W', 315: 'NW'
+              };
+              return cardinalDirections[index] || '';
+            },
+            font: {
+              size: 12,
+              weight: 'bold'
+            },
+            color: '#333'
+          }
+          */
+        }
+      },
+      elements: {
+        line: {
+          borderWidth: 2
+        },
+        point: {
+          pointStyle: 'circle'
+        }
+      }
+    }
+  });
+};
+
+
+  const initialiseThrottleChart = (trackData) => {
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    // Check if trackData is valid
+    if (!trackData || !Array.isArray(trackData) || trackData.length === 0) {
+      console.error("Invalid track data:", trackData);
+      return;
+    }
+
+    const ctx = chartRef.current.getContext('2d');
+    
+    
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        datasets: [{
+          label: '',
+          data: trackData.map(point => ({x: point[0], y: point[1]})),
+          backgroundColor: driverColour,
+          borderColor: driverColour,
+          borderWidth: 5,
+          pointRadius: 0,
+          showLine: true,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+              display: false
+            //}
+          },
+          y: {
+            display: false
+          }
+        },
+      }
+    });
+  };
 
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Telemetry Data</h1>
-      
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
 
       {/* Track Graph */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
-        <div className="chart-container" style={{ height: '400px', width: '80%' }}>
-          <canvas ref={chartRef} id="trackChart" />
-        </div>
+        
+        <div style={{ height: '200px' }}><canvas ref={windCompassRef} id="windCompass" /></div>
+        {telemetryData.weather &&(
         <div style={{ height: '400px', width: '20%', padding:'80%' }}>
-          <div><strong>Air Temp:</strong> {telemetryData.weather[0]}°C</div>
-          <div><strong>Pressure:</strong> {telemetryData.weather[2]}hPa</div>
+          <div><strong>Air Temp:</strong> {telemetryData.weather.airTemp}°C</div>
+          <div><strong>Pressure:</strong> {telemetryData.weather.pressure}hPa</div>
+          <div><strong>Rainfall:</strong><i class={telemetryData.weather.icon}></i></div>
+          <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
+          <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
+          <div style={{ height: '200px' }}><canvas ref={windCompassRef} id="windCompass" /></div>
         </div>
+        )}
+      </div>
+      {/* Track Graph */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h2 className="text-lg font-semibold mb-3">Telemetry</h2>
+        <div style={{ height: '200px' }}><canvas ref={speedGraph} id="speedGraph" /></div>
+        <div style={{ height: '100px' }}><canvas ref={throttleGraph} id="throttleGraph" /></div>
+        <div style={{ height: '100px' }}><canvas ref={brakeGraph} id="brakeGraph" /></div>
+        <div style={{ height: '200px' }}><canvas ref={gforceCircle} id="gforceCricle" /></div>
+        <div style={{ height: '200px' }}><canvas ref={tyreData} id="tyreData" /></div>
       </div>
 
+      {/* Lap Data */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h2 className="text-lg font-semibold mb-3">Telemetry</h2>
+        <div><strong>Time:</strong> {telemetryData.current.Time}°C</div>
+      </div>
     </div>
+    
   );
 }
 
 export default TelemetryView;
-
-/*
-
-      {telemetryData.weather && (
-        <div className="mb-6 p-4 bg-green-50 rounded-lg">
-          <h2 className="text-lg font-semibold mb-3">Weather Conditions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div><strong>Air Temp:</strong> {telemetryData.weather.airTemp}°C</div>
-            <div><strong>Pressure:</strong> {telemetryData.weather.pressure}hPa</div>
-            <div><strong>Rainfall:</strong> {telemetryData.weather.rainfall ? "Yes" : "No"}</div>
-            <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
-            <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
-            <div><strong>Wind Speed:</strong> {telemetryData.weather.windSpeed}m/s</div>
-            <div><strong>Wind Direction:</strong> {telemetryData.weather.windDirection}°</div>
-          </div>
-        </div>
-      )}
-
-      {telemetryData.current && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-          <h2 className="text-lg font-semibold mb-3">Current Telemetry</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div><strong>RPM:</strong> {telemetryData.current.RPM}</div>
-            <div><strong>Speed:</strong> {telemetryData.current.Speed} km/h</div>
-            <div><strong>Gear:</strong> {telemetryData.current.Gear}</div>
-            <div><strong>Throttle:</strong> {telemetryData.current.Throttle}%</div>
-            <div><strong>Brake:</strong> {telemetryData.current.Brake}%</div>
-            <div><strong>Time:</strong> {telemetryData.current.Time}s</div>
-          </div>
-        </div>
-      )}
-*/
