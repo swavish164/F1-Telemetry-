@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
+import windCompassChart from "./TrackChart";
+import WindCompass from "./windChart";
+
 
 function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
@@ -13,10 +16,6 @@ function TelemetryView() {
     track: null
   });
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
-  const windCompassRef = useRef(null);
-  const windCompassInstance = useRef(null);
   const ws = useRef(null);
 
   useEffect(() => {
@@ -31,23 +30,6 @@ function TelemetryView() {
       }
     };
   }, []);
-
-
-  useEffect(() => {
-    if ((trackPoints.length === trackLength) && (trackPoints.length > 0)) {
-      initialiseTrackChart(trackPoints);
-    }
-  }, [trackPoints, trackLength]);
-
-    useEffect(() => {
-    initialiseThrottleChart(telemetryData.current.Throttle);
-  }, [telemetryData.current.Throttle]);
-
-  useEffect(() => {
-  if (telemetryData.weather) {
-    initialiseWindCompass(telemetryData.weather.windDirection, telemetryData.weather.windSpeed);
-  }
-}, [telemetryData.weather]);
 
   const connectWebSocket = () => {
     try {
@@ -149,232 +131,6 @@ function TelemetryView() {
         current: telemetry
       }));
     } 
-    
-
-  };
-
-
-  const initialiseTrackChart = (trackData) => {
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
-
-    // Check if trackData is valid
-    if (!trackData || !Array.isArray(trackData) || trackData.length === 0) {
-      console.error("Invalid track data:", trackData);
-      return;
-    }
-
-    const ctx = chartRef.current.getContext('2d');
-    
-    
-    chartInstance.current = new Chart(ctx, {
-      type: "scatter",
-      data: {
-        datasets: [{
-          label: '',
-          data: trackData.map(point => ({x: point[0], y: point[1]})),
-          backgroundColor: driverColour,
-          borderColor: driverColour,
-          borderWidth: 5,
-          pointRadius: 0,
-          showLine: true,
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            type: 'linear',
-            position: 'bottom',
-            //ticks: {
-              //display: false
-            //},
-            //border: {
-              //color: 'black',
-              //width: 5
-            //},
-            //title: {
-              //display: false,
-              //text: 'X Position'
-              display: false
-            //}
-          },
-          y: {
-            /*
-            title: {
-              display: false,
-              text: 'Y Position'
-            },
-            ticks: {
-              display: false
-            },
-            border: {
-              color: 'black', 
-              width: 5
-            }
-              */
-            display: false
-          }
-        },
-      }
-    });
-  };
-
-const initialiseWindCompass = (windDirection, windSpeed) => {
-  if (windCompassInstance.current) {
-    windCompassInstance.current.destroy();
-  }
-
-  const createWindVector = (bearing, speed) => {
-    const data = new Array(360).fill(0);
-    const normalizedBearing = bearing % 360;
-    data[normalizedBearing] = speed;
-    data[(normalizedBearing + 1) % 360] = speed * 0.3;
-    data[(normalizedBearing - 1 + 360) % 360] = speed * 0.3;
-    return data;
-  };
-
-  const windVector = createWindVector(windDirection, windSpeed);
-  const ctx = windCompassRef.current.getContext('2d');
-
-  windCompassInstance.current = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      datasets: [{
-        data: windVector,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-        borderColor: 'white',
-        pointBackgroundColor: function(context) {
-          const index = context.dataIndex;
-          return index === windDirection % 360 ? '#FF6B6B' : 'transparent';
-        },
-        pointBorderColor: '#FF6B6B',
-        pointRadius: 4,
-        borderWidth: 2,
-        fill: true,
-        tension: 0.1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: function(tooltipItems) {
-              if (tooltipItems[0].parsed.r > 0) {
-                const bearing = tooltipItems[0].dataIndex;
-                const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-                const directionIndex = Math.round(bearing / 22.5) % 16;
-                return `${directions[directionIndex]} (${bearing}°)`;
-              }
-              return '';
-            },
-            label: function(context) {
-              if (context.parsed.r > 0) {
-                return `Wind Speed: ${context.parsed.r} m/s`;
-              }
-              return '';
-            }
-          }
-        }
-      },
-      scales: {
-        r: {
-          beginAtZero: true,
-          max: 50, // Adjust based on your expected max wind speed
-          ticks: {
-            display: false
-          },
-          angleLines: {
-            color: 'rgba(200, 200, 200, 0.3)',
-            lineWidth: 1
-          },
-          grid: {
-            color: 'rgba(200, 200, 200, 0.2)',
-            circular: true
-          },
-          /*
-          pointLabels: {
-            display: true,
-            centerPointLabels: true,
-            callback: function(value, index) {
-              const cardinalDirections = {
-                0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 
-                180: 'S', 225: 'SW', 270: 'W', 315: 'NW'
-              };
-              return cardinalDirections[index] || '';
-            },
-            font: {
-              size: 12,
-              weight: 'bold'
-            },
-            color: '#333'
-          }
-          */
-        }
-      },
-      elements: {
-        line: {
-          borderWidth: 2
-        },
-        point: {
-          pointStyle: 'circle'
-        }
-      }
-    }
-  });
-};
-
-
-  const initialiseThrottleChart = (trackData) => {
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
-
-    // Check if trackData is valid
-    if (!trackData || !Array.isArray(trackData) || trackData.length === 0) {
-      console.error("Invalid track data:", trackData);
-      return;
-    }
-
-    const ctx = chartRef.current.getContext('2d');
-    
-    
-    chartInstance.current = new Chart(ctx, {
-      type: "line",
-      data: {
-        datasets: [{
-          label: '',
-          data: trackData.map(point => ({x: point[0], y: point[1]})),
-          backgroundColor: driverColour,
-          borderColor: driverColour,
-          borderWidth: 5,
-          pointRadius: 0,
-          showLine: true,
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            type: 'linear',
-            position: 'bottom',
-              display: false
-            //}
-          },
-          y: {
-            display: false
-          }
-        },
-      }
-    });
   };
 
   return (
@@ -416,6 +172,19 @@ const initialiseWindCompass = (windDirection, windSpeed) => {
     </div>
     
   );
-}
+};
 
 export default TelemetryView;
+
+/*
+<div class="parent">
+<div class="div1"> </div>
+<div class="div2"> </div>
+<div class="div3"> </div>
+<div class="div4"> </div>
+<div class="div5"> </div>
+<div class="div6"> </div>
+<div class="div7"> </div>
+</div>
+
+*/
