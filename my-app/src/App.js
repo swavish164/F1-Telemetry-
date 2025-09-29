@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
-import windCompassChart from "./TrackChart";
-import WindCompass from "./windChart";
+import trackChart from "./TrackChart";
+import windCompass from "./windChart";
 
 
 function TelemetryView() {
@@ -134,15 +134,19 @@ function TelemetryView() {
   };
 
   return (
+    <div class = "parent">
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Telemetry Data</h1>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
 
       {/* Track Graph */}
+      <></>
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
-        
-        <div style={{ height: '200px' }}><canvas ref={windCompassRef} id="windCompass" /></div>
+        <div class="div1"> 
+        <div style={{ height: '200px' }}><canvas ref={trackChart} id="trackChart" /></div>
+        </div>
+        <div class="div2"> 
         {telemetryData.weather &&(
         <div style={{ height: '400px', width: '20%', padding:'80%' }}>
           <div><strong>Air Temp:</strong> {telemetryData.weather.airTemp}°C</div>
@@ -150,18 +154,28 @@ function TelemetryView() {
           <div><strong>Rainfall:</strong><i class={telemetryData.weather.icon}></i></div>
           <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
           <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
-          <div style={{ height: '200px' }}><canvas ref={windCompassRef} id="windCompass" /></div>
+          <div style={{ height: '200px' }}><canvas ref={windCompass} id="windCompass" /></div>
         </div>
         )}
+        </div>
       </div>
-      {/* Track Graph */}
+      {/* Main bit*/}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h2 className="text-lg font-semibold mb-3">Telemetry</h2>
+        <div class="div3"> 
         <div style={{ height: '200px' }}><canvas ref={speedGraph} id="speedGraph" /></div>
+        </div>
+        <div class="div4"> 
         <div style={{ height: '100px' }}><canvas ref={throttleGraph} id="throttleGraph" /></div>
-        <div style={{ height: '100px' }}><canvas ref={brakeGraph} id="brakeGraph" /></div>
+        </div>
+        <div class="div5"> 
         <div style={{ height: '200px' }}><canvas ref={gforceCircle} id="gforceCricle" /></div>
+        </div>
+        <div class="div6"> 
+        <div style={{ height: '200px' }}><canvas ref={lapData} id="tyreData" /></div>
+        </div>
+        <div class="div7"> 
         <div style={{ height: '200px' }}><canvas ref={tyreData} id="tyreData" /></div>
+        </div>
       </div>
 
       {/* Lap Data */}
@@ -169,6 +183,7 @@ function TelemetryView() {
         <h2 className="text-lg font-semibold mb-3">Telemetry</h2>
         <div><strong>Time:</strong> {telemetryData.current.Time}°C</div>
       </div>
+    </div>
     </div>
     
   );
