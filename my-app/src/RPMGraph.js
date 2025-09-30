@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function TrackChart({}){
+function RPMGraph({throttle}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
     useEffect(() => {
-        if (){
+        if (!throttle){
             return;
         }
         if(chartInstance.current){
@@ -20,9 +20,9 @@ function TrackChart({}){
         data: {
             datasets: [{
             label: '',
-            data: .map(point => ({x: point[0], y: point[1]})),
-            backgroundColor: driverColour,
-            borderColor: driverColour,
+            data: throttle,
+            backgroundColor: 'red',
+            borderColor: 'red',
             borderWidth: 5,
             pointRadius: 0,
             showLine: true,
@@ -37,7 +37,6 @@ function TrackChart({}){
                 type: 'linear',
                 position: 'bottom',
                 display: false
-                //}
             },
             y: {
                 display: false
@@ -45,9 +44,9 @@ function TrackChart({}){
             },
         }
         });
-    }, []);
+    }, [throttle]);
 
     return <canvas ref={chartRef} />;
 }
 
-export default TrackChart;
+export default RPMGraph;

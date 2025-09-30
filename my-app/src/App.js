@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
-import trackChart from "./TrackChart";
-import windCompass from "./windChart";
+import windCompassChart from "./windChart";
+import trackChart from "./trackMap";
+import gForceChart from "gForceGraph./";
+import RPMGraph from "RPMGraph./";
+import speedGraph from "speedGraph./";
+import throttleBar from "./tools.js";
 
 
 function TelemetryView() {
@@ -17,7 +21,7 @@ function TelemetryView() {
   });
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const ws = useRef(null);
-
+/*
   useEffect(() => {
     connectWebSocket();
 
@@ -30,6 +34,7 @@ function TelemetryView() {
       }
     };
   }, []);
+  */
 
   const connectWebSocket = () => {
     try {
@@ -39,7 +44,7 @@ function TelemetryView() {
       ws.current.onopen = () => {
         console.log("WebSocket connected successfully");
         setConnectionStatus('Connected');
-        // Don't send ping immediately, wait for connection to stabilize
+        // Don't send ping immediately, wait for connection to stabilise
         setTimeout(() => {
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send("ping");
@@ -50,12 +55,10 @@ function TelemetryView() {
       ws.current.onmessage = (event) => {
         console.log("Raw message received:", event.data);
         
-        // First, try to handle as JSON
         try {
           const parsed = JSON.parse(event.data);
           handleParsedMessage(parsed);
         } catch (error) {
-          // If JSON parsing fails, check if it's a simple string message
           console.log(error)
         }
       };
@@ -68,8 +71,7 @@ function TelemetryView() {
       ws.current.onclose = (event) => {
         console.log("WebSocket disconnected:", event.code, event.reason);
         setConnectionStatus('Disconnected');
-        
-        // Attempt reconnection after 3 seconds
+
         setTimeout(() => {
           if (!ws.current || ws.current.readyState === WebSocket.CLOSED) {
             connectWebSocket();
@@ -144,17 +146,17 @@ function TelemetryView() {
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
         <div class="div1"> 
-        <div style={{ height: '200px' }}><canvas ref={trackChart} id="trackChart" /></div>
+        <div style={{ height: '400px' }}><trackChart trackData={trackPoints} driverColour={driverColour}/></div>
         </div>
         <div class="div2"> 
         {telemetryData.weather &&(
-        <div style={{ height: '400px', width: '20%', padding:'80%' }}>
+        <div style={{ height: '400px'}}>
           <div><strong>Air Temp:</strong> {telemetryData.weather.airTemp}°C</div>
           <div><strong>Pressure:</strong> {telemetryData.weather.pressure}hPa</div>
           <div><strong>Rainfall:</strong><i class={telemetryData.weather.icon}></i></div>
           <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
           <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
-          <div style={{ height: '200px' }}><canvas ref={windCompass} id="windCompass" /></div>
+          <div style={{ height: '200px' }}><windCompassChart windDirection = {telemetryData.weather.windDirection} windSpeed = {telemetryData.weather.windSpeed}/></div>
         </div>
         )}
         </div>
@@ -162,19 +164,30 @@ function TelemetryView() {
       {/* Main bit*/}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <div class="div3"> 
-        <div style={{ height: '200px' }}><canvas ref={speedGraph} id="speedGraph" /></div>
+        <div style={{ height: '200px' }}><speedGraph speed = {telemetryData.current.Speed}/></div>
         </div>
         <div class="div4"> 
-        <div style={{ height: '100px' }}><canvas ref={throttleGraph} id="throttleGraph" /></div>
+        <div style={{ height: '100px' }}><RPMGraph throttle = {telemetryData.current.RPM}/></div>
         </div>
-        <div class="div5"> 
-        <div style={{ height: '200px' }}><canvas ref={gforceCircle} id="gforceCricle" /></div>
+        <div class="div5">
+          <throttleBar throttle={telemetryData.current?.Throttle || 0} />
         </div>
         <div class="div6"> 
-        <div style={{ height: '200px' }}><canvas ref={lapData} id="tyreData" /></div>
+            <div> id="brakeLight" style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                background: telemetryData.current?.Brake ? "red" : "green"}}
+            </div>        
         </div>
         <div class="div7"> 
-        <div style={{ height: '200px' }}><canvas ref={tyreData} id="tyreData" /></div>
+        <div style={{ height: '200px' }}><gForceGraph gForce = {telemetryData.current.Gforce} gForceAngle = {telemetryData.current.GforceAngle} /></div>
+        </div>
+        <div class="div8"> 
+        
+        </div>
+        <div class="div9"> 
+        
         </div>
       </div>
 
@@ -191,15 +204,3 @@ function TelemetryView() {
 
 export default TelemetryView;
 
-/*
-<div class="parent">
-<div class="div1"> </div>
-<div class="div2"> </div>
-<div class="div3"> </div>
-<div class="div4"> </div>
-<div class="div5"> </div>
-<div class="div6"> </div>
-<div class="div7"> </div>
-</div>
-
-*/

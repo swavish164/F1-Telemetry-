@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function TrackChart({trackData,driverColour}){
+function trackChart({trackData,driverColour}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
@@ -49,4 +49,4 @@ function TrackChart({trackData,driverColour}){
     return <canvas ref={chartRef} />;
 }
 
-export default TrackChart;
+export default trackChart;
