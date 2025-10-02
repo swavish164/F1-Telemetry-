@@ -19,3 +19,12 @@ function throttleBar({throttle}) {
 }
 
 export default throttleBar;
+
+function drsBool({DRS}){
+  if(DRS < 8){
+    return false
+  }
+  else{
+    return true 
+  }
+} 

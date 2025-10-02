@@ -184,9 +184,16 @@ function TelemetryView() {
         <div style={{ height: '200px' }}><gForceGraph gForce = {telemetryData.current.Gforce} gForceAngle = {telemetryData.current.GforceAngle} /></div>
         </div>
         <div class="div8"> 
+          lap time, gear, speed,drs,
+          <div><strong>Time:</strong> {telemetryData.current.Time}°C 
+          <strong>Gear:</strong> {telemetryData.current.Gear}
+          <strong>Speed: </strong> {telemetryData.current.Speed} km/h
+          <strong>DRS:</strong> {telemetryData.current.DRS }
+          </div>
         
         </div>
         <div class="div9"> 
+          tyre compound,session,lap,lap status, session status,
         
         </div>
       </div>

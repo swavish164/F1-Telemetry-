@@ -25,6 +25,7 @@ while true
             throttle = data.Throttle;
             brake = data.Brake;
             posData = data.PosData; 
+            drs = data.DRS;
             
             % --- shift history
             if y~=0 && y2~=0

@@ -74,6 +74,7 @@ async def run():
         throttle = car_Tel['Throttle']
         brake = car_Tel['Brake']
         times = car_Tel['Time']
+        drs = car_Tel['DRS']
 
         x = pos_data['X']
         y = pos_data['Y']
@@ -92,7 +93,8 @@ async def run():
                     'Throttle': float(throttle.iloc[i]),
                     'Brake': float(brake.iloc[i]),
                     'Time': float(times.iloc[i].total_seconds()),
-                    'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])]
+                    'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])],
+                    'DRS': float(drs.iloc[i])
                 }
 
                 payload = {"type": "update", "data": data}
