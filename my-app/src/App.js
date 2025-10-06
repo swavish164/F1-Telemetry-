@@ -21,20 +21,6 @@ function TelemetryView() {
   });
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const ws = useRef(null);
-/*
-  useEffect(() => {
-    connectWebSocket();
-
-    return () => {
-      if (ws.current) {
-        ws.current.close();
-      }
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
-  }, []);
-  */
 
   const connectWebSocket = () => {
     try {
@@ -125,7 +111,13 @@ function TelemetryView() {
         Time: parsed.data?.Time,
         PosData: parsed.data?.PosData,
         Gforce: parsed.data?.Gforce,
-        GforceAngle: parsed.data?.GforceAngle || parsed.data?.GforceDir
+        GforceAngle: parsed.data?.GforceAngle || parsed.data?.GforceDir,
+        DRS: parsed.data?.DRS,
+        TyreCompound: parsed.data?.tyreCompound,
+        TyreAge: parsed.data?.TyreAge,
+        SectorTimes: parsed.data?.Sectors,
+        TrackMessages: parsed.data?.Messages,
+        SessionStatus: parsed.data?.SessionStatus
       };
       
       setTelemetryData(prev => ({
@@ -193,8 +185,14 @@ function TelemetryView() {
         
         </div>
         <div class="div9"> 
-          tyre compound,session,lap,lap status, session status,
-        
+          lap,lap status,
+          <div><strong>Tyre compound:</strong> {telemetryData.current.TyreCompound}
+          <strong>Tyre Age:</strong> {telemetryData.current.TyreAge}
+          <strong>Session Status:</strong> {telemetryData.current.SessionStatus}
+          <strong>Sector 1:</strong> {telemetryData.current.SectorTimes[1]}
+          <strong>Sector 2:</strong> {telemetryData.current.SectorTimes[2]}
+          <strong>Sector 3:</strong> <p style="color:green">{telemetryData.current.SectorTimes[3]}</p>
+          </div>
         </div>
       </div>
 

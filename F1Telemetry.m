@@ -26,6 +26,7 @@ while true
             brake = data.Brake;
             posData = data.PosData; 
             drs = data.DRS;
+            tyreCompound = data.tyreCompound;
             
             % --- shift history
             if y~=0 && y2~=0

@@ -27,11 +27,15 @@ async def run():
         session = loadSession.session
 
         lando = session.laps.pick_drivers('4').pick_fastest()
+        sessionStatus = session.session_status()
+        raceDirectorMessages = session._race_control_messages()
         pos_data = lando.get_pos_data()
         track = pos_data.loc[:, ('X', 'Y')].to_numpy()
         circuit_info = session.get_circuit_info()
         track_angle = circuit_info.rotation / 180 * np.pi
         rotated_track = rotate(track, angle=track_angle)
+        tyreCompound = lando['Compound']
+        tyreLife = lando['TyreLife']
 
         # Weather (single row from session.weather_data)
         lap_weather = lando.get_weather_data()
@@ -53,6 +57,8 @@ async def run():
         for i in range(0, track_length, 10):
             chunk = rotated_track[i:i+10].tolist()
             await ws.send(json.dumps({"type": "track", "data": chunk}))
+
+        await ws.send(json.dumps({"type": "Other data", "compound": tyreCompound, "life": tyreLife}))
 
         # --- Setup TCP server for MATLAB ---
         host, port = '127.0.0.1', 65432
@@ -80,6 +86,10 @@ async def run():
         y = pos_data['Y']
         z = pos_data['Z']
 
+        sector1 = lando['Sector1Time']
+        sector2 = lando['Sector2Time']
+        sector3 = lando['Sector3Time']
+
         # --- Main loop ---
         with conn:
             for i in range(len(times) - 1):
@@ -94,7 +104,8 @@ async def run():
                     'Brake': float(brake.iloc[i]),
                     'Time': float(times.iloc[i].total_seconds()),
                     'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])],
-                    'DRS': float(drs.iloc[i])
+                    'DRS': float(drs.iloc[i]),
+                    'tyreCompound': float(tyreCompound.iloc[i])
                 }
 
                 payload = {"type": "update", "data": data}
@@ -108,10 +119,16 @@ async def run():
                 if not response:
                     print("MATLAB disconnected.")
                     break
-                processed = response.decode("utf-8").strip()
+                received = response.decode("utf-8").strip()
+                processed = json.loads(received)
+                processed["TyreAge"] = tyreLife.iloc[i]
+                processed["Sectors"] = [sector1.iloc[i],
+                                        sector2.iloc[i], sector3.iloc[i]]
+                processed["Messages"] = raceDirectorMessages.iloc[i]
+                processed["SessionStatus"] = sessionStatus.iloc[i]
 
                 # Forward to FastAPI websocket
-                await ws.send(processed)
+                await ws.send(json.dumps(data))
 
                 # Simulate real-time interval
                 await asyncio.sleep(diff.total_seconds())
