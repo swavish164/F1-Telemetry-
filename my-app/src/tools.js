@@ -1,4 +1,4 @@
-function throttleBar({throttle}) {
+export function throttleBar({throttle}) {
   return (
     <div style={{
       width: "30px",
@@ -18,9 +18,8 @@ function throttleBar({throttle}) {
   );
 }
 
-export default throttleBar;
 
-function drsBool({DRS}){
+export function drsBool({DRS}){
   if(DRS < 8){
     return false
   }
@@ -28,3 +27,17 @@ function drsBool({DRS}){
     return true 
   }
 } 
+
+export function parseSectorInput(input) {
+  const parts = input
+    .split(/[,\s]+/) // split by comma or whitespace
+    .map(v => parseFloat(v.trim()))
+    .filter(v => !isNaN(v));
+
+  if (parts.length !== 3) {
+    return { valid: false, data: [] };
+  }
+
+  return { valid: true, data: parts };
+}
+
