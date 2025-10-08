@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function gForceChart({gForce,gForceAngle}){
+function GForceChart({gForce,gForceAngle}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
@@ -23,4 +23,4 @@ function gForceChart({gForce,gForceAngle}){
     return <canvas ref={chartRef} />;
 }
 
-export default gForceChart;
+export default GForceChart;

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function windCompassChart({windDirection, windSpeed}){
+function WindCompassChart({windDirection, windSpeed}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
@@ -100,4 +100,4 @@ function windCompassChart({windDirection, windSpeed}){
     return <canvas ref={chartRef} />;
 }
 
-export default windCompassChart;
+export default WindCompassChart;

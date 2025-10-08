@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
-import windCompassChart from "./windChart";
-import trackChart from "./trackMap";
-import gForceChart from "gForceGraph./";
+import WindCompassChart from "./windChart";
+import TackChart from "./trackMap";
+import GForceChart from "my-app\\src\\gForceGraph.js";
 import RPMGraph from "RPMGraph./";
-import speedGraph from "speedGraph./";
-import {throttleBar,parseSectorInput,calculateSectorColour} from "./tools.js";
+import SpeedGraph from "speedGraph./";
+import {ThrottleBar,ParseSectorInput,CalculateSectorColour} from "./tools.js";
 
 
 function TelemetryView() {
@@ -19,6 +19,7 @@ function TelemetryView() {
   const [expectedPaceS2, setExpectedPaceS2] = useState("");
   const [expectedPaceS1, setExpectedPaceS1] = useState("");
   const [expectedInput, setExpectedInput] = useState("");
+  const [deltaInput, setDeltaInput] = useState("");
   const [deltaPaceS1, setDeltaPaceS1] = useState("");
   const [deltaPaceS2, setDeltaPaceS2] = useState("");
   const [deltaPaceS3, setDeltaPaceS3] = useState("");
@@ -135,6 +136,10 @@ function TelemetryView() {
       }));
     } 
   };
+  useEffect(() => {
+  connectWebSocket();
+  return () => ws.current && ws.current.close();
+}, []);
 
   return (
     <div class = "parent">
@@ -147,7 +152,7 @@ function TelemetryView() {
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
         <div class="div1"> 
-        <div style={{ height: '400px' }}><trackChart trackData={trackPoints} driverColour={driverColour}/></div>
+        <div style={{ height: '400px' }}><TackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current.PosData}/></div>
         </div>
         <div class="div2"> 
         {telemetryData.weather &&(
@@ -157,7 +162,7 @@ function TelemetryView() {
           <div><strong>Rainfall:</strong><i class={telemetryData.weather.icon}></i></div>
           <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
           <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
-          <div style={{ height: '200px' }}><windCompassChart windDirection = {telemetryData.weather.windDirection} windSpeed = {telemetryData.weather.windSpeed}/></div>
+          <div style={{ height: '200px' }}><WindCompassChart windDirection = {telemetryData.weather.windDirection} windSpeed = {telemetryData.weather.windSpeed}/></div>
         </div>
         )}
         </div>
@@ -165,7 +170,7 @@ function TelemetryView() {
       {/* Main bit*/}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <div class="div3"> 
-        <div style={{ height: '200px' }}><speedGraph speed = {telemetryData.current.Speed}/></div>
+        <div style={{ height: '200px' }}><SpeedGraph speed = {telemetryData.current.Speed}/></div>
         </div>
         <div class="div4"> 
         <div style={{ height: '100px' }}><RPMGraph throttle = {telemetryData.current.RPM}/></div>
@@ -174,20 +179,20 @@ function TelemetryView() {
           <throttleBar throttle={telemetryData.current?.Throttle || 0} />
         </div>
         <div class="div6"> 
-            <div> id="brakeLight" style={{
+            <div id="brakeLight" style={{
                 width: "100px",
                 height: "100px",
                 borderRadius: "50%",
                 background: telemetryData.current?.Brake ? "red" : "green"}}
-            </div>        
+            ></div>        
         </div>
         <div class="div7"> 
-        <div style={{ height: '200px' }}><gForceGraph gForce = {telemetryData.current.Gforce} gForceAngle = {telemetryData.current.GforceAngle} /></div>
+        <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current.Gforce} gForceAngle = {telemetryData.current.GforceAngle} /></div>
         </div>
         <div class="div8"> 
           <div>
-          <strong>Gear:</strong> {telemetryData.current.Gear}
-          <strong>Speed: </strong> {telemetryData.current.Speed} km/h
+          <strong>Gear:</strong> {telemetryData.current?.Gear}
+          <strong>Speed: </strong> {telemetryData.current?.Speed} km/h
           <strong>DRS:</strong> {telemetryData.current.DRS ? "Active" : "Off" }
           <strong>Tyre compound:</strong> {telemetryData.current.TyreCompound}
           <strong>Tyre Age:</strong> {telemetryData.current.TyreAge}
@@ -213,7 +218,7 @@ function TelemetryView() {
         <div className="form-popup">
           <form className="form-container" onSubmit={(e) => {
                 e.preventDefault();
-                const result = parseSectorInput(expectedInput);
+                const result = ParseSectorInput(expectedInput);
 
                 if (result.valid) { 
                   setExpectedPaceS1(((result.data).split())[0]);
@@ -226,7 +231,7 @@ function TelemetryView() {
               }}>
             <h1>Expected Pace</h1>
             <label><b>New Expected Pace</b></label>
-            <input type="text" placeholder="Enter New Expected Pace For Each Sector (With Spaces)" onChange = {(e) => setExpectedPace(e.target.value)} required />
+            <input type="text" placeholder="Enter New Expected Pace For Each Sector (With Spaces)" onChange = {(e) => setExpectedInput(e.target.value)} required />
             <button type="submit" className="btn">Confirm</button>
             <button type="button" className="btn cancel" onClick={() => setExpectedOpen(false)}>Close</button>
           </form>
@@ -237,20 +242,20 @@ function TelemetryView() {
         <div className="form-popup">
           <form className="form-container" onSubmit={(e) => {
                 e.preventDefault();
-                const result = parseSectorInput(expectedInput);
+                const result = ParseSectorInput(deltaInput);
 
                 if (result.valid) {
                   setDeltaPaceS1(((result.data).split())[0]);
                   setDeltaPaceS2(((result.data).split())[1]);
                   setDeltaPaceS3(((result.data).split())[2]);
-                  setExpectedOpen(false);
+                  setDeltaOpen(false);
                 } else {
                   alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");
                 }
               }}>
             <h1>Delta Pace</h1>
             <label><b>New Delta Pace</b></label>
-            <input type="text" placeholder="Enter New Delta Pace For Each Sector (With Spaces)" onChange = {(e) => setDeltaPace(e.target.value)} required />
+            <input type="text" placeholder="Enter New Delta Pace For Each Sector (With Spaces)" onChange = {(e) => setDeltaInput(e.target.value)} required />
             <button type="submit" className="btn">Confirm</button>
             <button type="button" className="btn cancel" onClick={() => setDeltaOpen(false)}>Close</button>
           </form>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function speedGraph({speed}){
+function SpeedGraph({speed}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
@@ -50,4 +50,4 @@ function speedGraph({speed}){
     return <canvas ref={chartRef} />;
 }
 
-export default speedGraph;
+export default SpeedGraph;

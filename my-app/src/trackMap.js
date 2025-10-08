@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function trackChart({trackData,driverColour}){
+function TrackChart({trackData,driverColour,currentPos}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
@@ -27,7 +27,15 @@ function trackChart({trackData,driverColour}){
                     pointRadius: 0,
                     showLine: true,
                     fill: false
-                }]
+                },{
+            label: "Car Position",
+            data: currentPos ? [{ x: currentPos[0], y: currentPos[1] }] : [],
+            backgroundColor: driverColour || "red",
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            showLine: false,
+        },
+    ],
                 },
                 options: {
                 responsive: true,
@@ -46,7 +54,16 @@ function trackChart({trackData,driverColour}){
             });
     }, [trackData, driverColour]);
 
+    useEffect(() => {
+    if (!chartInstance.current || !currentPos) return;
+
+    const carDataset = chartInstance.current.data.datasets[1];
+    carDataset.data = [{ x: currentPos[0], y: currentPos[1] }];
+
+    chartInstance.current.update("none");
+}, [currentPos]);
+
     return <canvas ref={chartRef} />;
 }
 
-export default trackChart;
+export default TrackChart;

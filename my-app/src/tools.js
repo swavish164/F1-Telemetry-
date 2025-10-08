@@ -1,4 +1,4 @@
-export function throttleBar({throttle}) {
+export function ThrottleBar({throttle}) {
   return (
     <div style={{
       width: "30px",
@@ -19,7 +19,7 @@ export function throttleBar({throttle}) {
 }
 
 
-export function drsBool({DRS}){
+export function DRSBool({DRS}){
   if(DRS < 8){
     return false
   }
@@ -28,7 +28,7 @@ export function drsBool({DRS}){
   }
 } 
 
-export function parseSectorInput(input) {
+export function ParseSectorInput(input) {
   const parts = input
     .split(/[,\s]+/) // split by comma or whitespace
     .map(v => parseFloat(v.trim()))
@@ -41,7 +41,7 @@ export function parseSectorInput(input) {
   return { valid: true, data: parts };
 }
 
-export function calculateSectorColour(time,delta,expected){
+export function CalculateSectorColour(time,delta,expected){
   if(time >= expected){
     return "purple";
   }else if(time >= expected){
