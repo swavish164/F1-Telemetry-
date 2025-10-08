@@ -41,3 +41,13 @@ export function parseSectorInput(input) {
   return { valid: true, data: parts };
 }
 
+export function calculateSectorColour(time,delta,expected){
+  if(time >= expected){
+    return "purple";
+  }else if(time >= expected){
+    return "green";
+  }else{
+    return "red";
+  };
+};
+

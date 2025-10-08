@@ -6,7 +6,7 @@ import trackChart from "./trackMap";
 import gForceChart from "gForceGraph./";
 import RPMGraph from "RPMGraph./";
 import speedGraph from "speedGraph./";
-import {throttleBar,parseSectorInput} from "./tools.js";
+import {throttleBar,parseSectorInput,calculateSectorColour} from "./tools.js";
 
 
 function TelemetryView() {
@@ -15,9 +15,13 @@ function TelemetryView() {
   const [trackPoints,setTrackPoints] = useState([]);
   const [expectedOpen, setExpectedOpen] = useState(false);
   const [deltaOpen, setDeltaOpen] = useState(false);
-  const [expectedPace, setExpectedPace] = useState("");
+  const [expectedPaceS3, setExpectedPaceS3] = useState("");
+  const [expectedPaceS2, setExpectedPaceS2] = useState("");
+  const [expectedPaceS1, setExpectedPaceS1] = useState("");
   const [expectedInput, setExpectedInput] = useState("");
-  const [deltaPace, setDeltaPace] = useState("");
+  const [deltaPaceS1, setDeltaPaceS1] = useState("");
+  const [deltaPaceS2, setDeltaPaceS2] = useState("");
+  const [deltaPaceS3, setDeltaPaceS3] = useState("");
   const [messages, setMessages] = useState([]);
   const [telemetryData, setTelemetryData] = useState({
     weather: null,
@@ -195,9 +199,9 @@ function TelemetryView() {
           <div>
           <strong>Time:</strong> {telemetryData.current.Time} 
           <strong>Session Status:</strong> {telemetryData.current.SessionStatus}
-          <strong>Sector 1:</strong> {telemetryData.current.SectorTimes[1]}
-          <strong>Sector 2:</strong> {telemetryData.current.SectorTimes[2]}
-          <strong>Sector 3:</strong> <p style="color:green">{telemetryData.current.SectorTimes[3]}</p>
+          <strong>Sector 1:</strong> <p style="color:calculateSectorColour(telemetryData.current.SectorTimes[1],deltaPaceS1,expectedPaceS1)">{telemetryData.current.SectorTimes[1]}</p>
+          <strong>Sector 2:</strong> <p style="color:calculateSectorColour(telemetryData.current.SectorTimes[2],deltaPaceS2,expectedPaceS2)">{telemetryData.current.SectorTimes[2]}</p>
+          <strong>Sector 3:</strong> <p style="color:calculateSectorColour(telemetryData.current.SectorTimes[3],deltaPaceS3,expectedPaceS3)">{telemetryData.current.SectorTimes[3]}</p>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
           
@@ -211,16 +215,18 @@ function TelemetryView() {
                 e.preventDefault();
                 const result = parseSectorInput(expectedInput);
 
-                if (result.valid) {
-                  setExpectedPace(result.data);
+                if (result.valid) { 
+                  setExpectedPaceS1(((result.data).split())[0]);
+                  setExpectedPaceS2(((result.data).split())[1]);
+                  setExpectedPaceS3(((result.data).split())[2]);
                   setExpectedOpen(false);
                 } else {
-                  alert("Please enter 3 valid sector times (e.g. 30.0, 35.0, 25.0)");
+                  alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");
                 }
               }}>
             <h1>Expected Pace</h1>
             <label><b>New Expected Pace</b></label>
-            <input type="text" placeholder="Enter New Expected Pace" onChange = {(e) => setExpectedPace(e.target.value)} required />
+            <input type="text" placeholder="Enter New Expected Pace For Each Sector (With Spaces)" onChange = {(e) => setExpectedPace(e.target.value)} required />
             <button type="submit" className="btn">Confirm</button>
             <button type="button" className="btn cancel" onClick={() => setExpectedOpen(false)}>Close</button>
           </form>
@@ -234,15 +240,17 @@ function TelemetryView() {
                 const result = parseSectorInput(expectedInput);
 
                 if (result.valid) {
-                  setExpectedPace(result.data);
+                  setDeltaPaceS1(((result.data).split())[0]);
+                  setDeltaPaceS2(((result.data).split())[1]);
+                  setDeltaPaceS3(((result.data).split())[2]);
                   setExpectedOpen(false);
                 } else {
-                  alert("Please enter 3 valid sector times (e.g. 30.0, 35.0, 25.0)");
+                  alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");
                 }
               }}>
             <h1>Delta Pace</h1>
             <label><b>New Delta Pace</b></label>
-            <input type="text" placeholder="Enter New Delta Pace" onChange = {(e) => setDeltaPace(e.target.value)} required />
+            <input type="text" placeholder="Enter New Delta Pace For Each Sector (With Spaces)" onChange = {(e) => setDeltaPace(e.target.value)} required />
             <button type="submit" className="btn">Confirm</button>
             <button type="button" className="btn cancel" onClick={() => setDeltaOpen(false)}>Close</button>
           </form>
