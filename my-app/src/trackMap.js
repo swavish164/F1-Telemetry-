@@ -52,7 +52,7 @@ function TrackChart({trackData,driverColour,currentPos}){
                 },
                 }
             });
-    }, [trackData, driverColour]);
+    }, [trackData, driverColour,currentPos]);
 
     useEffect(() => {
     if (!chartInstance.current || !currentPos) return;

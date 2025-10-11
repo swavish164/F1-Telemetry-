@@ -2,12 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
 import WindCompassChart from "./windChart";
-import TackChart from "./trackMap";
-import GForceChart from "my-app\\src\\gForceGraph.js";
-import RPMGraph from "RPMGraph./";
-import SpeedGraph from "speedGraph./";
+import TrackChart from "./trackMap";
+import GForceChart from "./gForceGraph.js";
+import RPMGraph from "./RPMGraph.js";
+import SpeedGraph from "./speedGraph.js";
 import {ThrottleBar,ParseSectorInput,CalculateSectorColour} from "./tools.js";
-
 
 function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
@@ -43,7 +42,7 @@ function TelemetryView() {
         // Don't send ping immediately, wait for connection to stabilise
         setTimeout(() => {
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            ws.current.send("ping");
+            ws.current?.send("ping");
           }
         }, 1000);
       };
@@ -69,7 +68,7 @@ function TelemetryView() {
         setConnectionStatus('Disconnected');
 
         setTimeout(() => {
-          if (!ws.current || ws.current.readyState === WebSocket.CLOSED) {
+          if (!ws.current || ws.current?.readyState === WebSocket.CLOSED) {
             connectWebSocket();
           }
         }, 3000);
@@ -90,7 +89,7 @@ function TelemetryView() {
         airTemp,
         humidity,
         pressure,
-        icon: rainfall ? "fas fa-cloud-showers-heavy" : "fas fa-sun",
+        icon: rainfall ? "fa-solid fa-cloud-showers-heavy" : "fas fa-sun",
         trackTemp,
         windDirection,
         windSpeed,
@@ -138,23 +137,18 @@ function TelemetryView() {
   };
   useEffect(() => {
   connectWebSocket();
-  return () => ws.current && ws.current.close();
+  return () => ws.current && ws.current?.close();
 }, []);
 
   return (
     <div class = "parent">
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Telemetry Data</h1>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
 
       {/* Track Graph */}
-      <></>
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h2 className="text-lg font-semibold mb-3">Track Layout</h2>
-        <div class="div1"> 
-        <div style={{ height: '400px' }}><TackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current.PosData}/></div>
+        <div className="div1"> 
+        <div style={{ height: '400px' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData}/></div>
         </div>
-        <div class="div2"> 
+        <div className="div2"> 
         {telemetryData.weather &&(
         <div style={{ height: '400px'}}>
           <div><strong>Air Temp:</strong> {telemetryData.weather.airTemp}°C</div>
@@ -165,20 +159,16 @@ function TelemetryView() {
           <div style={{ height: '200px' }}><WindCompassChart windDirection = {telemetryData.weather.windDirection} windSpeed = {telemetryData.weather.windSpeed}/></div>
         </div>
         )}
-        </div>
       </div>
       {/* Main bit*/}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <div class="div3"> 
-        <div style={{ height: '200px' }}><SpeedGraph speed = {telemetryData.current.Speed}/></div>
+        <div className="div3"> 
+        <div style={{ height: '200px' }}><SpeedGraph speed = {telemetryData.current?.Speed}/></div>
         </div>
-        <div class="div4"> 
-        <div style={{ height: '100px' }}><RPMGraph throttle = {telemetryData.current.RPM}/></div>
+  
+        <div className="div4">
+          <ThrottleBar throttle={telemetryData.current?.Throttle || 0} />
         </div>
-        <div class="div5">
-          <throttleBar throttle={telemetryData.current?.Throttle || 0} />
-        </div>
-        <div class="div6"> 
+        <div className="div5"> 
             <div id="brakeLight" style={{
                 width: "100px",
                 height: "100px",
@@ -186,33 +176,38 @@ function TelemetryView() {
                 background: telemetryData.current?.Brake ? "red" : "green"}}
             ></div>        
         </div>
-        <div class="div7"> 
-        <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current.Gforce} gForceAngle = {telemetryData.current.GforceAngle} /></div>
+        <div className="div6"> 
+        <div style={{ height: '100px' }}><RPMGraph throttle = {telemetryData.current?.RPM}/></div>
         </div>
-        <div class="div8"> 
+        <div className="div7"> 
+        <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current?.Gforce} gForceAngle = {telemetryData.current?.GforceAngle} /></div>
+        </div>
+        <div className="div8"> 
           <div>
-          <strong>Gear:</strong> {telemetryData.current?.Gear}
-          <strong>Speed: </strong> {telemetryData.current?.Speed} km/h
-          <strong>DRS:</strong> {telemetryData.current.DRS ? "Active" : "Off" }
-          <strong>Tyre compound:</strong> {telemetryData.current.TyreCompound}
-          <strong>Tyre Age:</strong> {telemetryData.current.TyreAge}
+          <strong>Gear:</strong> <p>{telemetryData.current?.Gear}</p>
+          <strong>Speed: </strong> <p>{telemetryData.current?.Speed} km/h </p>
+          <strong>DRS:</strong> <p>{telemetryData.current?.DRS ? "Active" : "Off" } </p>
+          <strong>Tyre compound:</strong> <p>{telemetryData.current?.TyreCompound} </p>
+          <strong>Tyre Age:</strong> <p>{telemetryData.current?.TyreAge} </p>
           </div>
         
         </div>
-        <div class="div9"> 
+        <div className="div9"> 
           lap,lap status,
           <div>
-          <strong>Time:</strong> {telemetryData.current.Time} 
-          <strong>Session Status:</strong> {telemetryData.current.SessionStatus}
-          <strong>Sector 1:</strong> <p style="color:calculateSectorColour(telemetryData.current.SectorTimes[1],deltaPaceS1,expectedPaceS1)">{telemetryData.current.SectorTimes[1]}</p>
-          <strong>Sector 2:</strong> <p style="color:calculateSectorColour(telemetryData.current.SectorTimes[2],deltaPaceS2,expectedPaceS2)">{telemetryData.current.SectorTimes[2]}</p>
-          <strong>Sector 3:</strong> <p style="color:calculateSectorColour(telemetryData.current.SectorTimes[3],deltaPaceS3,expectedPaceS3)">{telemetryData.current.SectorTimes[3]}</p>
+          <strong>Time:</strong> <p>{telemetryData.current?.Time} </p>
+          <strong>Session Status:</strong><p> {telemetryData.current?.SessionStatus}</p>
+          <strong>Sector 1:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[1], deltaPaceS1, expectedPaceS1)}}>{telemetryData.current?.SectorTimes[1]}</p>
+          <strong>Sector 2:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[2], deltaPaceS2, expectedPaceS2)}}>{telemetryData.current?.SectorTimes[2]}</p>
+          <strong>Sector 3:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[3], deltaPaceS3, expectedPaceS3)}}>{telemetryData.current?.SectorTimes[3]}</p>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
           
           </div>
         </div>
-      </div>
+        <div className = "div10">
+          <p>Console</p>
+        </div>
       {/* Popup Forms */}
       {expectedOpen && (
         <div className="form-popup">
@@ -221,9 +216,9 @@ function TelemetryView() {
                 const result = ParseSectorInput(expectedInput);
 
                 if (result.valid) { 
-                  setExpectedPaceS1(((result.data).split())[0]);
-                  setExpectedPaceS2(((result.data).split())[1]);
-                  setExpectedPaceS3(((result.data).split())[2]);
+                  setExpectedPaceS1(((result.data))[0]);
+                  setExpectedPaceS2(((result.data))[1]);
+                  setExpectedPaceS3(((result.data))[2]);
                   setExpectedOpen(false);
                 } else {
                   alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");
@@ -245,9 +240,9 @@ function TelemetryView() {
                 const result = ParseSectorInput(deltaInput);
 
                 if (result.valid) {
-                  setDeltaPaceS1(((result.data).split())[0]);
-                  setDeltaPaceS2(((result.data).split())[1]);
-                  setDeltaPaceS3(((result.data).split())[2]);
+                  setDeltaPaceS1(((result.data))[0]);
+                  setDeltaPaceS2(((result.data))[1]);
+                  setDeltaPaceS3(((result.data))[2]);
                   setDeltaOpen(false);
                 } else {
                   alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");
@@ -262,7 +257,6 @@ function TelemetryView() {
         </div>
       )}       
 
-    </div>
     </div>
     
   );
