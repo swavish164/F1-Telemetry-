@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  color: 'black';
+  color: 'white';
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -16,44 +16,52 @@ code {
 
 .parent {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(14, minmax(0, 1fr));
   grid-template-areas:
-    "a a a a a a a a a b b b"
-    "a a a a a a a a a b b b"
-    "a a a a a a a a a b b b"
-    "a a a a a a a a a b b b"
-    "c c c c d f f f f g g g"
-    "c c c c d f f f f g g g"
-    "c c c c . f f f f g g g"
-    "c c c c e f f f f g g g"
-    "h h h h h h h h h i i i"
-    "h h h h h h h h h i i i"
-    "j j j j j j j j j i i i"
-    "j j j j j j j j j i i i";
+    "a a a a a a a a a a a b b b b"
+    "a a a a a a a a a a a b b b b"
+    "a a a a a a a a a a a b b b b"
+    "a a a a a a a a a a a b b b b"
+    "a a a a a a a a a a a b b b b"
+    "c c c c c d f f f f f g g g g"
+    "c c c c c d f f f f f g g g g"
+    "c c c c c . f f f f f g g g g"
+    "c c c c c . f f f f f g g g g"
+    "c c c c c e f f f f f g g g g"
+    "h h h h h l l l l l l i i i i"
+    "h h h h h l l l l l l i i i i"
+    "j j j j j j k k k k k i i i i"
+    "j j j j j j k k k k k i i i i";
   gap: 8px;
   height: 100vh;
   width: 100vw;
   box-sizing: border-box;
   padding: 10px;
-  background: #0b1320;
+  background: #000000;
 }
 .body{
-  background-color: #282c34;
+  background-color: #000000;
 }
 
 .div1 { grid-area: a; }
 .div2 { grid-area: b; }
 .div3 { grid-area: c; }
 .div4 { grid-area: d; }
-.div5 { grid-area: e; }
+.div5 { grid-area: e; 
+  border: 1px solid #ddd;
+  color:white;}
 .div6 { grid-area: f; }
 .div7 { grid-area: g; }
 .div8 { grid-area: h; }
 .div9 { grid-area: j; }
 .div10 { grid-area: i; }
+.div11 { grid-area: k; }
+.div12 { grid-area: l; }
 
-.div1, .div2, .div3, .div4, .div5, .div6, .div7, .div8, .div9,.div10 {
+.div1, .div2, .div3, .div4, .div6, .div7, .div8, .div9,.div10,.div11,.div12 {
   border: 1px solid #ddd;
-  background-color: rgba(200, 200, 255, 0.1);
+  color: white;
+  background-color: rgba(0, 0, 0, 0.1);
 }
+

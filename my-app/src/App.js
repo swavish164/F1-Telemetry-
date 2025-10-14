@@ -6,7 +6,7 @@ import TrackChart from "./trackMap";
 import GForceChart from "./gForceGraph.js";
 import RPMGraph from "./RPMGraph.js";
 import SpeedGraph from "./speedGraph.js";
-import {ThrottleBar,ParseSectorInput,CalculateSectorColour} from "./tools.js";
+import {ThrottleBar,ParseSectorInput,CalculateSectorColour,GetCurrentTime} from "./tools.js";
 
 function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
@@ -168,13 +168,9 @@ function TelemetryView() {
         <div className="div4">
           <ThrottleBar throttle={telemetryData.current?.Throttle || 0} />
         </div>
-        <div className="div5"> 
-            <div id="brakeLight" style={{
-                width: "100px",
-                height: "100px",
-                borderRadius: "50%",
-                background: telemetryData.current?.Brake ? "red" : "green"}}
-            ></div>        
+        <div className="div5" style = {{
+          backgroundColor: telemetryData.current?.Brake ? "red" : "green"
+        }}>  
         </div>
         <div className="div6"> 
         <div style={{ height: '100px' }}><RPMGraph throttle = {telemetryData.current?.RPM}/></div>
@@ -184,29 +180,45 @@ function TelemetryView() {
         </div>
         <div className="div8"> 
           <div>
-          <strong>Gear:</strong> <p>{telemetryData.current?.Gear}</p>
-          <strong>Speed: </strong> <p>{telemetryData.current?.Speed} km/h </p>
-          <strong>DRS:</strong> <p>{telemetryData.current?.DRS ? "Active" : "Off" } </p>
-          <strong>Tyre compound:</strong> <p>{telemetryData.current?.TyreCompound} </p>
-          <strong>Tyre Age:</strong> <p>{telemetryData.current?.TyreAge} </p>
+          <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
+          <p><strong>Gear:</strong> {telemetryData.current?.Gear}</p>
+          <p><strong>Speed: </strong> {telemetryData.current?.Speed} km/h </p>
+          <p><strong>DRS:</strong> {telemetryData.current?.DRS ? "Active" : "Off" } </p>
+          </div>
           </div>
         
         </div>
+        <div className = "div12">
+          <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
+          <p><strong>Tyre compound:</strong> {telemetryData.current?.TyreCompound} </p>
+          <p><strong>Tyre Age:</strong> {telemetryData.current?.TyreAge} </p>
+          </div>
+        </div>
         <div className="div9"> 
-          lap,lap status,
-          <div>
-          <strong>Time:</strong> <p>{telemetryData.current?.Time} </p>
-          <strong>Session Status:</strong><p> {telemetryData.current?.SessionStatus}</p>
+            <div style = {{display: 'flex',alignItems: 'center',gap:'50px',fontSize: 50,padding: 10}}>
           <strong>Sector 1:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[1], deltaPaceS1, expectedPaceS1)}}>{telemetryData.current?.SectorTimes[1]}</p>
           <strong>Sector 2:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[2], deltaPaceS2, expectedPaceS2)}}>{telemetryData.current?.SectorTimes[2]}</p>
           <strong>Sector 3:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[3], deltaPaceS3, expectedPaceS3)}}>{telemetryData.current?.SectorTimes[3]}</p>
+          </div>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
-          
-          </div>
+        
         </div>
         <div className = "div10">
           <p>Console</p>
+          <div style = {{fontSize: 20}}>
+          <p>{GetCurrentTime()}: Comment1</p>
+          <p>{GetCurrentTime()}: Comment2</p>
+          <p>{GetCurrentTime()}: Comment2</p>
+          </div>
+        </div>
+        <div className = "div11">
+          <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
+            <p>Lap: </p>
+            <p>Lap Status: </p>
+            <p><strong>Time:</strong> {telemetryData.current?.Time} </p>
+          </div>
+          <p><strong>Session Status:</strong> {telemetryData.current?.SessionStatus}</p>
         </div>
       {/* Popup Forms */}
       {expectedOpen && (

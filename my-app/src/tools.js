@@ -1,8 +1,8 @@
 export function ThrottleBar({throttle}) {
   return (
     <div style={{
-      width: "30px",
-      height: "200px",
+      width: "50%",
+      height: "100%",
       background: "black",
       borderRadius: "10px",
       display: "flex",
@@ -50,4 +50,12 @@ export function CalculateSectorColour(time,delta,expected){
     return "red";
   };
 };
+
+export function GetCurrentTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
 
