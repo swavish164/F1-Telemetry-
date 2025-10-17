@@ -26,8 +26,8 @@ code {
     "a a a a a a a a a a a b b b b"
     "c c c c c d f f f f f g g g g"
     "c c c c c d f f f f f g g g g"
-    "c c c c c . f f f f f g g g g"
-    "c c c c c . f f f f f g g g g"
+    "c c c c c d f f f f f g g g g"
+    "c c c c c d f f f f f g g g g"
     "c c c c c e f f f f f g g g g"
     "h h h h h l l l l l l i i i i"
     "h h h h h l l l l l l i i i i"
@@ -47,9 +47,10 @@ code {
 .div1 { grid-area: a; }
 .div2 { grid-area: b; }
 .div3 { grid-area: c; }
-.div4 { grid-area: d; }
+.div4 { grid-area: d; 
+padding: 0px 15px;}
 .div5 { grid-area: e; 
-  border: 1px solid #ddd;
+  border: 1px solid hwb(33 9% 19%);
   color:white;}
 .div6 { grid-area: f; }
 .div7 { grid-area: g; }
@@ -60,7 +61,7 @@ code {
 .div12 { grid-area: l; }
 
 .div1, .div2, .div3, .div4, .div6, .div7, .div8, .div9,.div10,.div11,.div12 {
-  border: 1px solid #ddd;
+  border: 1px solid hwb(33 9% 19%);
   color: white;
   background-color: rgba(0, 0, 0, 0.1);
 }

@@ -35,6 +35,8 @@ async def run():
         rotated_track = rotate(track, angle=track_angle)
         tyreCompound = lando['Compound']
         tyreLife = lando['TyreLife']
+        lapStartTime = lando['LapStartTime']
+        print(tyreLife)
 
         lap_weather = lando.get_weather_data()
         colour = fastf1.plotting.get_driver_color('NOR', session)
@@ -99,7 +101,7 @@ async def run():
                     'Time': float(times.iloc[i].total_seconds()),
                     'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])],
                     'DRS': float(drs.iloc[i]),
-                    'tyreCompound': float(tyreCompound.iloc[i])
+                    'tyreCompound': tyreCompound
                 }
 
                 payload = {"type": "update", "data": data}
@@ -115,14 +117,15 @@ async def run():
                     break
                 received = response.decode("utf-8").strip()
                 processed = json.loads(received)
-                processed["TyreAge"] = tyreLife.iloc[i]
-                processed["Sectors"] = [sector1.iloc[i],
-                                        sector2.iloc[i], sector3.iloc[i]]
-                processed["Messages"] = raceDirectorMessages.iloc[i]
-                processed["SessionStatus"] = sessionStatus.iloc[i]
+                processed["data"]["TyreAge"] = float(tyreLife)
+                processed["data"]["Sectors"] = [sector1.total_seconds(),
+                                                sector2.total_seconds(), sector3.total_seconds()]
+
+                # processed["Messages"] = raceDirectorMessages.iloc[i]
+                # processed["SessionStatus"] = sessionStatus.iloc[i]
 
                 # Forward to FastAPI websocket
-                await ws.send(json.dumps(data))
+                await ws.send(json.dumps(processed))
 
                 await asyncio.sleep(diff.total_seconds())
 

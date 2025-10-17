@@ -1,7 +1,7 @@
 export function ThrottleBar({throttle}) {
   return (
     <div style={{
-      width: "50%",
+      width: "100%",
       height: "100%",
       background: "black",
       borderRadius: "10px",
@@ -20,7 +20,7 @@ export function ThrottleBar({throttle}) {
 
 
 export function DRSBool({DRS}){
-  if(DRS < 8){
+  if(DRS <= 8){
     return false
   }
   else{

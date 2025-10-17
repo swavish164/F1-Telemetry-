@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Chart from 'chart.js/auto';
 
 import WindCompassChart from "./windChart";
-import TrackChart from "./trackMap";
+import TrackChart  from "./trackMap.js";
 import GForceChart from "./gForceGraph.js";
 import RPMGraph from "./RPMGraph.js";
 import SpeedGraph from "./speedGraph.js";
@@ -48,8 +48,7 @@ function TelemetryView() {
       };
 
       ws.current.onmessage = (event) => {
-        console.log("Raw message received:", event.data);
-        
+        //console.log("Raw message received:", event.data);
         try {
           const parsed = JSON.parse(event.data);
           handleParsedMessage(parsed);
@@ -111,6 +110,7 @@ function TelemetryView() {
       
     } else if (parsed.type === "update") {
       // Update only the telemetry data for updates
+      console.log(parsed.data)
       const telemetry = {
         RPM: parsed.data?.RPM,
         Speed: parsed.data?.Speed,
@@ -125,8 +125,8 @@ function TelemetryView() {
         TyreCompound: parsed.data?.tyreCompound,
         TyreAge: parsed.data?.TyreAge,
         SectorTimes: parsed.data?.Sectors,
-        TrackMessages: parsed.data?.Messages,
-        SessionStatus: parsed.data?.SessionStatus
+        //TrackMessages: parsed.data?.Messages,
+        //SessionStatus: parsed.data?.SessionStatus
       };
       
       setTelemetryData(prev => ({
@@ -146,7 +146,7 @@ function TelemetryView() {
 
       {/* Track Graph */}
         <div className="div1"> 
-        <div style={{ height: '400px' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData}/></div>
+          <div style={{ height: '400px' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData}/></div>
         </div>
         <div className="div2"> 
         {telemetryData.weather &&(
@@ -162,7 +162,7 @@ function TelemetryView() {
       </div>
       {/* Main bit*/}
         <div className="div3"> 
-        <div style={{ height: '200px' }}><SpeedGraph speed = {telemetryData.current?.Speed}/></div>
+          <div style={{ height: "100%" }}><SpeedGraph speed = {telemetryData.current?.Speed}/></div>
         </div>
   
         <div className="div4">
@@ -173,10 +173,10 @@ function TelemetryView() {
         }}>  
         </div>
         <div className="div6"> 
-        <div style={{ height: '100px' }}><RPMGraph throttle = {telemetryData.current?.RPM}/></div>
+          <div style={{ height: "100%" }}><RPMGraph throttle = {telemetryData.current?.RPM}/></div>
         </div>
         <div className="div7"> 
-        <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current?.Gforce} gForceAngle = {telemetryData.current?.GforceAngle} /></div>
+          <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current?.Gforce} gForceAngle = {telemetryData.current?.GforceAngle} /></div>
         </div>
         <div className="div8"> 
           <div>
@@ -195,10 +195,10 @@ function TelemetryView() {
           </div>
         </div>
         <div className="div9"> 
-            <div style = {{display: 'flex',alignItems: 'center',gap:'50px',fontSize: 50,padding: 10}}>
-          <strong>Sector 1:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[1], deltaPaceS1, expectedPaceS1)}}>{telemetryData.current?.SectorTimes[1]}</p>
-          <strong>Sector 2:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[2], deltaPaceS2, expectedPaceS2)}}>{telemetryData.current?.SectorTimes[2]}</p>
-          <strong>Sector 3:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[3], deltaPaceS3, expectedPaceS3)}}>{telemetryData.current?.SectorTimes[3]}</p>
+            <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 8}}>
+          <strong>Sector 1:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[0], deltaPaceS1, expectedPaceS1)}}>{telemetryData.current?.SectorTimes[0]}</p>
+          <strong>Sector 2:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[1], deltaPaceS2, expectedPaceS2)}}>{telemetryData.current?.SectorTimes[1]}</p>
+          <strong>Sector 3:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[2], deltaPaceS3, expectedPaceS3)}}>{telemetryData.current?.SectorTimes[2]}</p>
           </div>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>

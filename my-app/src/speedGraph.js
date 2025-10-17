@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
 
-function SpeedGraph({speed}){
+function SpeedGraph({ speed }){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 

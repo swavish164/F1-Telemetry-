@@ -16,7 +16,6 @@ while true
             jsonStr = char(raw);
             
             packet = jsondecode(jsonStr);
-
             data = packet.data;
             Time = data.Time;
             rpm = data.RPM;
