@@ -168,7 +168,7 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.curren
       </div>
       {/* Main bit*/}
         <div className="div3"> 
-          <div style={{ height: "100%" }}><SpeedGraph speed = {telemetryData.current?.Speed}/></div>
+          <div style={{ height: "100%" }}><SpeedGraph speed = {telemetryData.current?.Speed} time = {telemetryData.current?.Time}/></div>
         </div>
   
         <div className="div4">
@@ -179,7 +179,7 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.curren
         }}>  
         </div>
         <div className="div6"> 
-          <div style={{ height: "100%" }}><RPMGraph throttle = {telemetryData.current?.RPM}/></div>
+          <div style={{ height: "100%" }}><RPMGraph RPM = {telemetryData.current?.RPM} time = {telemetryData.current?.Time}/></div>
         </div>
         <div className="div7"> 
           <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current?.Gforce} gForceAngle = {telemetryData.current?.GforceAngle} /></div>
