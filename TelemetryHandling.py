@@ -98,7 +98,7 @@ async def run():
                     'Gear': float(gear.iloc[i]),
                     'Throttle': float(throttle.iloc[i]),
                     'Brake': float(brake.iloc[i]),
-                    'Time': float(times.iloc[i].total_seconds()),
+                    'Time': float(round(times.iloc[i].total_seconds(), 2)),
                     'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])],
                     'DRS': float(drs.iloc[i]),
                     'tyreCompound': tyreCompound
@@ -118,8 +118,8 @@ async def run():
                 received = response.decode("utf-8").strip()
                 processed = json.loads(received)
                 processed["data"]["TyreAge"] = float(tyreLife)
-                processed["data"]["Sectors"] = [sector1.total_seconds(),
-                                                sector2.total_seconds(), sector3.total_seconds()]
+                processed["data"]["Sectors"] = [round(sector1.total_seconds(), 2),
+                                                round(sector2.total_seconds(), 2), round(sector3.total_seconds(), 2)]
 
                 # processed["Messages"] = raceDirectorMessages.iloc[i]
                 # processed["SessionStatus"] = sessionStatus.iloc[i]

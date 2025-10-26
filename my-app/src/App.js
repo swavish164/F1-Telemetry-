@@ -6,7 +6,7 @@ import TrackChart  from "./trackMap.js";
 import GForceChart from "./gForceGraph.js";
 import RPMGraph from "./RPMGraph.js";
 import SpeedGraph from "./speedGraph.js";
-import {ThrottleBar,ParseSectorInput,CalculateSectorColour,GetCurrentTime} from "./tools.js";
+import {ThrottleBar,ParseSectorInput,GetCurrentTime,SectorTimings} from "./tools.js";
 
 function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
@@ -28,6 +28,7 @@ function TelemetryView() {
     current: null,
     track: null
   });
+
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const ws = useRef(null);
 
@@ -140,6 +141,11 @@ function TelemetryView() {
   return () => ws.current && ws.current?.close();
 }, []);
 
+const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.current?.SectorTimes || [], 
+  deltaTimes: [deltaPaceS1,deltaPaceS2,deltaPaceS3], 
+  expectedTimes: [expectedPaceS1,expectedPaceS2,expectedPaceS3], 
+  overallTime: telemetryData.current?.Time})
+
   return (
     <div class = "parent">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -196,9 +202,9 @@ function TelemetryView() {
         </div>
         <div className="div9"> 
             <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 8}}>
-          <strong>Sector 1:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[0], deltaPaceS1, expectedPaceS1)}}>{telemetryData.current?.SectorTimes[0]}</p>
-          <strong>Sector 2:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[1], deltaPaceS2, expectedPaceS2)}}>{telemetryData.current?.SectorTimes[1]}</p>
-          <strong>Sector 3:</strong> <p style={{color: CalculateSectorColour(telemetryData.current?.SectorTimes[2], deltaPaceS3, expectedPaceS3)}}>{telemetryData.current?.SectorTimes[2]}</p>
+          <strong>Sector 1:</strong> <p style={{color: sectorTimesCalculations[0][1]}}>{sectorTimesCalculations[0][0]}</p>
+          <strong>Sector 2:</strong> <p style={{color: sectorTimesCalculations[1][1]}}>{sectorTimesCalculations[1][0]}</p>
+          <strong>Sector 3:</strong> <p style={{color: sectorTimesCalculations[2][1]}}>{sectorTimesCalculations[2][0]}</p>
           </div>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>

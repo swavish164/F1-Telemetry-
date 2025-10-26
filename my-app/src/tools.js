@@ -19,6 +19,7 @@ export function ThrottleBar({throttle}) {
 }
 
 
+
 export function DRSBool({DRS}){
   if(DRS <= 8){
     return false
@@ -50,6 +51,54 @@ export function CalculateSectorColour(time,delta,expected){
     return "red";
   };
 };
+
+export function SectorTimings({sectorTimes,deltaTimes,expectedTimes,overallTime}){
+  let sectorOne = [0,'gray']
+  let sectorTwo = [0,'gray']
+  let sectorThree = [0,'gray']
+
+  if (!Array.isArray(sectorTimes) || sectorTimes.length < 3) {
+    return [sectorOne, sectorTwo, sectorThree];
+  }
+  for(let i=0;i < 3;i++){
+    switch(i){
+      case 0:
+        if(sectorTimes[0] < overallTime){
+          sectorOne[0] = sectorTimes[0]
+          sectorOne[1] = CalculateSectorColour(sectorTimes[0],deltaTimes[0],expectedTimes[0])
+        }
+        else{
+          sectorOne[0] = overallTime
+          i = 3
+        }
+        break;
+      case 1:
+        if(sectorTimes[0] + sectorTimes[1] < overallTime){
+          sectorTwo[0] = sectorTimes[1]
+          sectorTwo[1] = CalculateSectorColour(sectorTimes[1],deltaTimes[1],expectedTimes[1])
+        }
+        else{
+          sectorTwo[0] = (overallTime - sectorTimes[0]).toFixed(2)
+          i=3
+        }
+
+        break;
+      case 2:
+        if(sectorTimes[0] + sectorTimes[1] + sectorTimes[2] < overallTime){
+          sectorThree[0] = sectorTimes[2]
+          sectorThree[1] = CalculateSectorColour(sectorTimes[2],deltaTimes[2],expectedTimes[2])
+        }
+        else{
+          sectorThree[0] = (overallTime - sectorTimes[0] - sectorTimes[1]).toFixed(2)
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  return [sectorOne,sectorTwo,sectorThree]
+}
 
 export function GetCurrentTime() {
   const now = new Date();
