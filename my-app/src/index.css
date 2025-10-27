@@ -56,7 +56,8 @@ padding: 0px 15px;}
 .div7 { grid-area: g; }
 .div8 { grid-area: h; }
 .div9 { grid-area: j; }
-.div10 { grid-area: i; }
+.div10 { grid-area: i;
+overflow: auto;}
 .div11 { grid-area: k; }
 .div12 { grid-area: l; }
 

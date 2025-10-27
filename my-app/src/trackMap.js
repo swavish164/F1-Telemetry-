@@ -50,7 +50,17 @@ function TrackChart({trackData,driverColour,currentPos}){
                     display: false
                     }
                 },
-                }
+                animation: {
+                        duration: 0 
+                    },
+                transitions: {
+                    active: {
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                },
+            }
             });
     }, [trackData, driverColour,currentPos]);
 

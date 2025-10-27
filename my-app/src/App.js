@@ -40,7 +40,6 @@ function TelemetryView() {
       ws.current.onopen = () => {
         console.log("WebSocket connected successfully");
         setConnectionStatus('Connected');
-        // Don't send ping immediately, wait for connection to stabilise
         setTimeout(() => {
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current?.send("ping");
@@ -83,7 +82,6 @@ function TelemetryView() {
   const handleParsedMessage = (parsed) => {
     
     if (parsed.type === "weather") {
-      // Extract weather data
       const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.data || [];
       const weatherData = {
         airTemp,
@@ -110,8 +108,6 @@ function TelemetryView() {
       });
       
     } else if (parsed.type === "update") {
-      // Update only the telemetry data for updates
-      console.log(parsed.data)
       const telemetry = {
         RPM: parsed.data?.RPM,
         Speed: parsed.data?.Speed,
@@ -152,19 +148,17 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.curren
 
       {/* Track Graph */}
         <div className="div1"> 
-          <div style={{ height: '400px' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData}/></div>
+          <div style={{ height: '100%' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData}/></div>
         </div>
         <div className="div2"> 
-        {telemetryData.weather &&(
-        <div style={{ height: '400px'}}>
-          <div><strong>Air Temp:</strong> {telemetryData.weather.airTemp}°C</div>
-          <div><strong>Pressure:</strong> {telemetryData.weather.pressure}hPa</div>
-          <div><strong>Rainfall:</strong><i class={telemetryData.weather.icon}></i></div>
-          <div><strong>Humidity:</strong> {telemetryData.weather.humidity}%</div>
-          <div><strong>Track Temp:</strong> {telemetryData.weather.trackTemp}°C</div>
-          <div style={{ height: '200px' }}><WindCompassChart windDirection = {telemetryData.weather.windDirection} windSpeed = {telemetryData.weather.windSpeed}/></div>
+        <div style={{ height: '50%'}}>
+          <div><strong>Air Temp:</strong> {telemetryData.weather?.airTemp}°C</div>
+          <div><strong>Pressure:</strong> {telemetryData.weather?.pressure}hPa</div>
+          <div><strong>Rainfall:</strong><i class={telemetryData.weather?.icon}></i></div>
+          <div><strong>Humidity:</strong> {telemetryData.weather?.humidity}%</div>
+          <div><strong>Track Temp:</strong> {telemetryData.weather?.trackTemp}°C</div>
         </div>
-        )}
+        <div style={{ height: '50%' }}><WindCompassChart windDirection = {telemetryData.weather?.windDirection} windSpeed = {telemetryData.weather?.windSpeed}/></div>
       </div>
       {/* Main bit*/}
         <div className="div3"> 
@@ -182,7 +176,7 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.curren
           <div style={{ height: "100%" }}><RPMGraph RPM = {telemetryData.current?.RPM} time = {telemetryData.current?.Time}/></div>
         </div>
         <div className="div7"> 
-          <div style={{ height: '200px' }}><GForceChart gForce = {telemetryData.current?.Gforce} gForceAngle = {telemetryData.current?.GforceAngle} /></div>
+          <div style={{ height: '100%' }}><GForceChart gForce = {telemetryData.current?.Gforce} gForceAngle = {telemetryData.current?.GforceAngle} /></div>
         </div>
         <div className="div8"> 
           <div>
@@ -213,9 +207,11 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.curren
         <div className = "div10">
           <p>Console</p>
           <div style = {{fontSize: 20}}>
-          <p>{GetCurrentTime()}: Comment1</p>
-          <p>{GetCurrentTime()}: Comment2</p>
-          <p>{GetCurrentTime()}: Comment2</p>
+            <ul>
+              <li><p>{GetCurrentTime()}: Comment1</p></li>
+              <li><p>{GetCurrentTime()}: Comment2</p></li>
+              <li><p>{GetCurrentTime()}: Comment2</p></li>
+            </ul>
           </div>
         </div>
         <div className = "div11">
