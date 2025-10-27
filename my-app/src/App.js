@@ -6,7 +6,8 @@ import TrackChart  from "./trackMap.js";
 import GForceChart from "./gForceGraph.js";
 import RPMGraph from "./RPMGraph.js";
 import SpeedGraph from "./speedGraph.js";
-import {ThrottleBar,ParseSectorInput,GetCurrentTime,SectorTimings} from "./tools.js";
+import {ThrottleBar,ParseSectorInput,GetCurrentTime,SectorTimings,TelemetryConsole} from "./tools.js";
+import {SetConsoleMessages,addMessageConsole} from "./consoleMessages.js";
 
 function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
@@ -22,7 +23,7 @@ function TelemetryView() {
   const [deltaPaceS1, setDeltaPaceS1] = useState("");
   const [deltaPaceS2, setDeltaPaceS2] = useState("");
   const [deltaPaceS3, setDeltaPaceS3] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [lastCompletedSector, setLastCompletedSector] = useState(0);
   const [telemetryData, setTelemetryData] = useState({
     weather: null,
     current: null,
@@ -31,6 +32,14 @@ function TelemetryView() {
 
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const ws = useRef(null);
+
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    SetConsoleMessages((msg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+  }, []);
 
   const connectWebSocket = () => {
     try {
@@ -78,6 +87,7 @@ function TelemetryView() {
       setConnectionStatus('Failed to connect');
     }
   };
+
 
   const handleParsedMessage = (parsed) => {
     
@@ -137,10 +147,30 @@ function TelemetryView() {
   return () => ws.current && ws.current?.close();
 }, []);
 
-const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.current?.SectorTimes || [], 
+const sectorTimes = telemetryData.current?.SectorTimes || [];
+
+const sectorTimesCalculations = SectorTimings({sectorTimes: sectorTimes, 
   deltaTimes: [deltaPaceS1,deltaPaceS2,deltaPaceS3], 
   expectedTimes: [expectedPaceS1,expectedPaceS2,expectedPaceS3], 
-  overallTime: telemetryData.current?.Time})
+  overallTime: telemetryData.current?.Time}) 
+
+
+
+useEffect(() => {
+  if (telemetryData.current?.Time > sectorTimes[0] && lastCompletedSector < 1) {
+    addMessageConsole(`Sector 1 complete: ${sectorTimes[0]}s`);
+    setLastCompletedSector(1);
+  } else if (telemetryData.current?.Time > sectorTimes[0] + sectorTimes[1] && lastCompletedSector < 2) {
+    addMessageConsole(`Sector 2 complete: ${sectorTimes[1]}s`);
+    setLastCompletedSector(2);
+  } else if (
+    telemetryData.current?.Time > sectorTimes[0] + sectorTimes[1] + sectorTimes[2] &&
+    lastCompletedSector < 3
+  ) {
+    addMessageConsole(`Sector 3 complete: ${sectorTimes[2]}s`);
+    setLastCompletedSector(3);
+  }
+}, [telemetryData.current?.Time]);
 
   return (
     <div class = "parent">
@@ -204,16 +234,12 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: telemetryData.curren
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
         
         </div>
-        <div className = "div10">
+        
+        <div className="div10">
           <p>Console</p>
-          <div style = {{fontSize: 20}}>
-            <ul>
-              <li><p>{GetCurrentTime()}: Comment1</p></li>
-              <li><p>{GetCurrentTime()}: Comment2</p></li>
-              <li><p>{GetCurrentTime()}: Comment2</p></li>
-            </ul>
-          </div>
+          <TelemetryConsole messages = {messages}/>
         </div>
+
         <div className = "div11">
           <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
             <p>Lap: </p>

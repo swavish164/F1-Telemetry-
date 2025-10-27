@@ -1,3 +1,6 @@
+import React, { useEffect, useRef } from "react";
+import { addMessageConsole } from "./consoleMessages";  
+
 export function ThrottleBar({throttle}) {
   return (
     <div style={{
@@ -18,6 +21,26 @@ export function ThrottleBar({throttle}) {
   );
 }
 
+
+export function TelemetryConsole({ messages }) {
+  const consoleEndRef = useRef(null);
+  useEffect(() => {
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  return (
+          <div style = {{fontSize: 20}}>
+            <ul>
+              {messages.map((msg, index) => (
+                <li key={index}><p>{msg}</p></li>
+              ))}
+            </ul>
+
+          </div>
+  )
+}
 
 
 export function DRSBool({DRS}){
