@@ -131,3 +131,14 @@ export function GetCurrentTime() {
   return `${hours}:${minutes}:${seconds}`;
 }
 
+
+export function RotatePosition(point, angle){
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return {
+    x: point[0] * cos - point[1] * sin,
+    y: point[0] * sin + point[1] * cos
+  }
+}
+
+

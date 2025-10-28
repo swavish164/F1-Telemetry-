@@ -40,10 +40,22 @@ function RPMGraph({ RPM, time }){
                             display: false
                         },
                         y: {
-                            beginAtZero: true,
-                            display: false
+                            beginAt: 2000,
+                            display: true,
+                            ticks: {
+                                stepSize: 1000
+                            }
                         }
+                    },
+                    plugins: {
+                    title: {
+                        display: true,
+                        text: 'RPM vs Time'
+                    },
+                    legend: {
+                        display:false
                     }
+                }
                 }
             });
         } else {

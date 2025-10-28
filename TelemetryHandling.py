@@ -52,7 +52,7 @@ async def run():
         await ws.send(json.dumps({"type": "weather", "data": weather}))
 
         track_length = len(rotated_track)
-        await ws.send(json.dumps({"type": "track_init", "length": track_length, "colour": colour}))
+        await ws.send(json.dumps({"type": "track_init", "length": track_length, "colour": colour, "rotation": track_angle}))
         for i in range(0, track_length, 10):
             chunk = rotated_track[i:i+10].tolist()
             await ws.send(json.dumps({"type": "track", "data": chunk}))

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
+import {RotatePosition} from "./tools.js"
 
-function TrackChart({trackData,driverColour,currentPos}){
+function TrackChart({trackData,driverColour,currentPos,trackRotation}){
     const chartRef = useRef(null);
     const chartInstance = useRef(null)
 
@@ -14,27 +15,29 @@ function TrackChart({trackData,driverColour,currentPos}){
         }
 
         const ctx = chartRef.current.getContext("2d")
+        const rotatedCurrentPos = currentPos ? RotatePosition(currentPos, trackRotation) : null;
+        console.log(rotatedCurrentPos)
 
         chartInstance.current = new Chart(ctx, {
             type: "scatter",
             data: {
-                datasets: [{
-                    label: '',
+                datasets: [
+                            {
+                    label: "car",
+                    data: rotatedCurrentPos ? [{ x: rotatedCurrentPos.x, y: rotatedCurrentPos.y }] : [],
+                    backgroundColor: driverColour || "red",
+                    pointRadius: 4,
+                    showLine: false,
+                },{
+                    label: 'track',
                     data: trackData.map(point => ({x: point[0], y: point[1]})),
                     backgroundColor: driverColour,
-                    borderColor: driverColour,
+                    borderColor: 'gray',
                     borderWidth: 5,
                     pointRadius: 0,
                     showLine: true,
                     fill: false
-                },{
-            label: "Car Position",
-            data: currentPos ? [{ x: currentPos[0], y: currentPos[1] }] : [],
-            backgroundColor: driverColour || "red",
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            showLine: false,
-        },
+                },
     ],
                 },
                 options: {
@@ -50,6 +53,14 @@ function TrackChart({trackData,driverColour,currentPos}){
                     display: false
                     }
                 },
+                plugins: {
+                    tooltip: {
+                        enabled: false
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
                 animation: {
                         duration: 0 
                     },
@@ -62,16 +73,17 @@ function TrackChart({trackData,driverColour,currentPos}){
                 },
             }
             });
-    }, [trackData, driverColour,currentPos]);
+    }, [trackData, driverColour,currentPos,trackRotation]);
 
     useEffect(() => {
     if (!chartInstance.current || !currentPos) return;
 
-    const carDataset = chartInstance.current.data.datasets[1];
-    carDataset.data = [{ x: currentPos[0], y: currentPos[1] }];
+    const carDataset = chartInstance.current.data.datasets[0];
+    const rotatedCurrentPos = RotatePosition(currentPos, trackRotation);
+    carDataset.data = [{ x: rotatedCurrentPos.x, y: rotatedCurrentPos.y }];
 
     chartInstance.current.update("none");
-}, [currentPos]);
+}, [currentPos,trackRotation]);
 
     return <canvas ref={chartRef} />;
 }

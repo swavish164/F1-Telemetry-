@@ -61,6 +61,10 @@ function GForceChart({gForce,gForceAngle}){
                     },
                     plugins: {
                         legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'G Force & Direction'
+                    }
                     },
                     scales: {
                         r: {

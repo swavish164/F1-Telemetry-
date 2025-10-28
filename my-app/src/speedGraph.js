@@ -40,10 +40,22 @@ function SpeedGraph({ speed, time }){
                             display: false
                         },
                         y: {
-                            beginAtZero: true,
-                            display: false
+                            beginAt: 50,
+                            display: true,
+                            ticks: {
+                                stepSize: 50
+                            }
                         }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Speed vs Time'
+                    },
+                    legend: { 
+                        display: false
                     }
+                }
                 }
             });
         } else {

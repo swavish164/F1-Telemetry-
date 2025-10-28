@@ -50,6 +50,10 @@ function WindCompassChart({windDirection, windSpeed}){
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
+                title: {
+                        display: true,
+                        text: 'Wind:'+windSpeed+'m/s '+windDirection+'°'
+                    }
                 //tooltip: {
                 //callbacks: {
                   //  title: function(tooltipItems) {

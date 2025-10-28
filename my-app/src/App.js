@@ -13,6 +13,7 @@ function TelemetryView() {
   const [trackLength,setTrackLength] = useState(null);
   const [driverColour,setDriverColour] = useState(null);
   const [trackPoints,setTrackPoints] = useState([]);
+  const [trackRotation, setTrackRotation] = useState("");
   const [expectedOpen, setExpectedOpen] = useState(false);
   const [deltaOpen, setDeltaOpen] = useState(false);
   const [expectedPaceS3, setExpectedPaceS3] = useState("");
@@ -109,6 +110,7 @@ function TelemetryView() {
       setTrackLength(parsed.length);
       setTrackPoints([]);
       setDriverColour(parsed.colour);
+      setTrackRotation(parsed.rotation)
 
       
     }else if (parsed.type === "track") {
@@ -178,21 +180,25 @@ useEffect(() => {
 
       {/* Track Graph */}
         <div className="div1"> 
-          <div style={{ height: '100%' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData}/></div>
+          <div style={{ height: '100%' }}><TrackChart trackData={trackPoints} driverColour={driverColour} currentPos = {telemetryData.current?.PosData} trackRotation = {trackRotation}/></div>
         </div>
         <div className="div2"> 
-        <div style={{ height: '50%'}}>
-          <div><strong>Air Temp:</strong> {telemetryData.weather?.airTemp}°C</div>
-          <div><strong>Pressure:</strong> {telemetryData.weather?.pressure}hPa</div>
-          <div><strong>Rainfall:</strong><i class={telemetryData.weather?.icon}></i></div>
-          <div><strong>Humidity:</strong> {telemetryData.weather?.humidity}%</div>
-          <div><strong>Track Temp:</strong> {telemetryData.weather?.trackTemp}°C</div>
+        <div style={{ height: '30%'}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:'15px',fontSize: 22,padding: 6}}>
+          <strong>Air Temp:</strong> {telemetryData.weather?.airTemp}°C
+          <strong>Pressure:</strong> {telemetryData.weather?.pressure}hPa
+          <strong>Rainfall:</strong><i class={telemetryData.weather?.icon}></i>
+          </div>
+          <div style = {{display: 'flex',alignItems: 'center',gap:'15px',fontSize: 22,padding: 6}}>
+          <strong>Humidity:</strong> {telemetryData.weather?.humidity}%
+          <strong>Track Temp:</strong> {telemetryData.weather?.trackTemp}°C
+          </div>
         </div>
-        <div style={{ height: '50%' }}><WindCompassChart windDirection = {telemetryData.weather?.windDirection} windSpeed = {telemetryData.weather?.windSpeed}/></div>
+        <div style={{ height: '65%',fontSize: 22 }}> <WindCompassChart windDirection = {telemetryData.weather?.windDirection} windSpeed = {telemetryData.weather?.windSpeed}/></div>
       </div>
       {/* Main bit*/}
         <div className="div3"> 
-          <div style={{ height: "100%" }}><SpeedGraph speed = {telemetryData.current?.Speed} time = {telemetryData.current?.Time}/></div>
+          <div style={{ height: "100%" }}><SpeedGraph speed = {telemetryData.current?.Speed} time = {telemetryData.current?.Time}/> </div>
         </div>
   
         <div className="div4">
@@ -210,7 +216,7 @@ useEffect(() => {
         </div>
         <div className="div8"> 
           <div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:'80px',fontSize: 30,padding: 10}}>
           <p><strong>Gear:</strong> {telemetryData.current?.Gear}</p>
           <p><strong>Speed: </strong> {telemetryData.current?.Speed} km/h </p>
           <p><strong>DRS:</strong> {telemetryData.current?.DRS ? "Active" : "Off" } </p>
@@ -225,13 +231,15 @@ useEffect(() => {
           </div>
         </div>
         <div className="div9"> 
-            <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 8}}>
+            <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 4}}>
           <strong>Sector 1:</strong> <p style={{color: sectorTimesCalculations[0][1]}}>{sectorTimesCalculations[0][0]}</p>
           <strong>Sector 2:</strong> <p style={{color: sectorTimesCalculations[1][1]}}>{sectorTimesCalculations[1][0]}</p>
           <strong>Sector 3:</strong> <p style={{color: sectorTimesCalculations[2][1]}}>{sectorTimesCalculations[2][0]}</p>
           </div>
+          <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 0}}>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
+          </div>
         
         </div>
         
