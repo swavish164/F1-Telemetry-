@@ -11,18 +11,31 @@ y = 0; y2 = 0; y3 = 0;
 baseWear = 1e-4;
 temps = [90,105,105,65,50];
 averageLoss = [(90/(25*90)),(90/(35*90)),(90/(45*90)),(90/(60*90)),(90/(50*90))];
-tyres = [s,m,h,int,w];
+%for different tyres (soft,medium,hard,intermediate,wet)
+tempMult = 0.05;
 
-optimalTemps = dictionary(temps,tyres);
-baseLoss = dictionary(averageLoss,tyres);
+
 
 while true
     try
         if t.NumBytesAvailable > 0
+            packet = jsondecode(jsonStr);
+            if(packet.type == "initial")
+               data = packet.data;
+               tyreCompound = data.tyreCompound;
+               weather = data.weather;
+               tyreNumber = tyreTypeAssignee(tyreCompound);
+               loss = averageLoss(tyreNumber);
+               optimalTemp = temps(tyreNumber);
+               airTemp = data.weather.airTemp;
+               pressure = data.weather.pressure;
+               trackTemp = data.weather.trackTemp;
+               windSpeed = data.weather.windSpeed;
+
+            end
             raw = readline(t); 
             jsonStr = char(raw);
             
-            packet = jsondecode(jsonStr);
             data = packet.data;
             Time = data.Time;
             rpm = data.RPM;
@@ -32,7 +45,6 @@ while true
             brake = data.Brake;
             posData = data.PosData; 
             drs = data.DRS;
-            tyreCompound = data.tyreCompound;
             
             % --- shift history
             if y~=0 && y2~=0
@@ -44,8 +56,8 @@ while true
                 if y2 == 0 && y ~= 0
                     y2 = y;
                     x2 = x;
-                    t2 = t1
-                    speed2 = speed1
+                    t2 = t1;
+                    speed2 = speed1;
                 end
             end
 
@@ -113,7 +125,29 @@ end
 function tyres = tyreWear(speed1, speed2, t1, t2)
     dt = t2 - t1;
     dSpeed = (speed2 - speed1) / dt;
+
+    wear = loss * 
     
 
+end
+
+function temp = calculateTemp()
+
+
+function tyreNumber = tyreTypeAssignee(compound)
+    switch compound
+        case 'SOFT'
+            tyreNumber = 0;
+        case 'MEDIUM'
+            tyreNumber = 1;
+        case 'HARD'
+            tyreNumber = 2;
+        case 'INTERMEDIATE'
+            tyreNumber = 3;
+        otherwise
+            tyreNumber = 4;
+    end
+
+         
 end
 

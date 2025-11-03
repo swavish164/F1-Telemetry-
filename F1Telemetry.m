@@ -11,18 +11,36 @@ y = 0; y2 = 0; y3 = 0;
 baseWear = 1e-4;
 temps = [90,105,105,65,50];
 averageLoss = [(90/(25*90)),(90/(35*90)),(90/(45*90)),(90/(60*90)),(90/(50*90))];
-tyres = [s,m,h,int,w];
+%for different tyres (soft,medium,hard,intermediate,wet)
+tempMult = 0.05;
+vBase = 300;
+velMult = 0.01;
+pMult = 0.02;
+wMult = 0.02;
+tyres = 100;
 
-optimalTemps = dictionary(temps,tyres);
-baseLoss = dictionary(averageLoss,tyres);
+
 
 while true
     try
         if t.NumBytesAvailable > 0
+            packet = jsondecode(jsonStr);
+            if(packet.type == "initial")
+               data = packet.data;
+               tyreCompound = data.tyreCompound;
+               weather = data.weather;
+               tyreNumber = tyreTypeAssignee(tyreCompound);
+               loss = averageLoss(tyreNumber);
+               optimalTemp = temps(tyreNumber);
+               airTemp = data.weather.airTemp;
+               pressure = data.weather.pressure;
+               trackTemp = data.weather.trackTemp;
+               windSpeed = data.weather.windSpeed;
+
+            end
             raw = readline(t); 
             jsonStr = char(raw);
             
-            packet = jsondecode(jsonStr);
             data = packet.data;
             Time = data.Time;
             rpm = data.RPM;
@@ -32,7 +50,6 @@ while true
             brake = data.Brake;
             posData = data.PosData; 
             drs = data.DRS;
-            tyreCompound = data.tyreCompound;
             
             % --- shift history
             if y~=0 && y2~=0
@@ -44,8 +61,8 @@ while true
                 if y2 == 0 && y ~= 0
                     y2 = y;
                     x2 = x;
-                    t2 = t1
-                    speed2 = speed1
+                    t2 = t1;
+                    speed2 = speed1;
                 end
             end
 
@@ -113,8 +130,30 @@ end
 function tyres = tyreWear(speed1, speed2, t1, t2)
     dt = t2 - t1;
     dSpeed = (speed2 - speed1) / dt;
+
+    wear = loss * temp * (gf)^1.3 * speedMult * windMult * pressureMult * dt;
+    tyres = tyres + wear;
     
 
+end
+
+function temp = calculateTemp()
+    diff = abs(trackTemp - optimalTemp);
+    temp = 1 + tempMult * (diff / optimalTemp);
+end
+function speedMult = calculateSpeedMult()
+    ratio = speed / vBase;
+    speedMult = 1 + velMult * ratio;
+end
+
+function pressureMult = calculatePressureMult()
+    ratio = (pressure - 1013) /1013;
+    pressureMult = 1 - pMult * ratio;
+end
+
+function windMult = calculateWindMult()
+    ratio = windSpeed / 100;
+    windMult = 1 - wMult * ratio;
 end
 
 
