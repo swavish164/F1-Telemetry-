@@ -6,7 +6,7 @@ import TrackChart  from "./trackMap.js";
 import GForceChart from "./gForceGraph.js";
 import RPMGraph from "./RPMGraph.js";
 import SpeedGraph from "./speedGraph.js";
-import {ThrottleBar,ParseSectorInput,GetCurrentTime,SectorTimings,TelemetryConsole} from "./tools.js";
+import {ThrottleBar,ParseSectorInput,GetCurrentTime,SectorTimings,TelemetryConsole,DRSBool} from "./tools.js";
 import {SetConsoleMessages,addMessageConsole} from "./consoleMessages.js";
 
 function TelemetryView() {
@@ -156,6 +156,10 @@ const sectorTimesCalculations = SectorTimings({sectorTimes: sectorTimes,
   expectedTimes: [expectedPaceS1,expectedPaceS2,expectedPaceS3], 
   overallTime: telemetryData.current?.Time}) 
 
+const xScaleFactor = window.innerWidth / 1920
+const yScaleFactor = window.innerHeight / 1080
+const scaleFactor = Math.min(xScaleFactor,yScaleFactor)
+
 
 
 useEffect(() => {
@@ -174,6 +178,7 @@ useEffect(() => {
   }
 }, [telemetryData.current?.Time]);
 
+
   return (
     <div class = "parent">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -184,17 +189,17 @@ useEffect(() => {
         </div>
         <div className="div2"> 
         <div style={{ height: '30%'}}>
-          <div style = {{display: 'flex',alignItems: 'center',gap:'15px',fontSize: 22,padding: 6}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(15*scaleFactor)}px`,fontSize: (22*scaleFactor),padding: (6*scaleFactor)}}>
           <strong>Air Temp:</strong> {telemetryData.weather?.airTemp}°C
           <strong>Pressure:</strong> {telemetryData.weather?.pressure}hPa
           <strong>Rainfall:</strong><i class={telemetryData.weather?.icon}></i>
           </div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:'15px',fontSize: 22,padding: 6}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(15*scaleFactor)}px`,fontSize: 22*scaleFactor,padding: (6*scaleFactor)}}>
           <strong>Humidity:</strong> {telemetryData.weather?.humidity}%
           <strong>Track Temp:</strong> {telemetryData.weather?.trackTemp}°C
           </div>
-        </div>
-        <div style={{ height: '65%',fontSize: 22 }}> <WindCompassChart windDirection = {telemetryData.weather?.windDirection} windSpeed = {telemetryData.weather?.windSpeed}/></div>
+        </div> 
+        <div style={{ height: '65%',fontSize: `${(22*scaleFactor)}` }}> <WindCompassChart windDirection = {telemetryData.weather?.windDirection} windSpeed = {telemetryData.weather?.windSpeed}/></div>
       </div>
       {/* Main bit*/}
         <div className="div3"> 
@@ -216,27 +221,27 @@ useEffect(() => {
         </div>
         <div className="div8"> 
           <div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:'80px',fontSize: 30,padding: 10}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(80*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: (10*scaleFactor)}}>
           <p><strong>Gear:</strong> {telemetryData.current?.Gear}</p>
           <p><strong>Speed: </strong> {telemetryData.current?.Speed} km/h </p>
-          <p><strong>DRS:</strong> {telemetryData.current?.DRS ? "Active" : "Off" } </p>
+          <p><strong>DRS:</strong> {DRSBool(telemetryData.current?.DRS) ? "Active" : "Off" } </p>
           </div>
           </div>
         
         </div>
         <div className = "div12">
-          <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: (10*scaleFactor)}}>
           <p><strong>Tyre compound:</strong> {telemetryData.current?.TyreCompound} </p>
           <p><strong>Tyre Age:</strong> {telemetryData.current?.TyreAge} </p>
           </div>
         </div>
         <div className="div9"> 
-            <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 4}}>
+            <div style = {{display: 'flex',alignItems: 'center',gap:(45*scaleFactor),fontSize: (30*scaleFactor),padding: 4}}>
           <strong>Sector 1:</strong> <p style={{color: sectorTimesCalculations[0][1]}}>{sectorTimesCalculations[0][0]}</p>
           <strong>Sector 2:</strong> <p style={{color: sectorTimesCalculations[1][1]}}>{sectorTimesCalculations[1][0]}</p>
           <strong>Sector 3:</strong> <p style={{color: sectorTimesCalculations[2][1]}}>{sectorTimesCalculations[2][0]}</p>
           </div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:'45px',fontSize: 30,padding: 0}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(45*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: 0}}>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
           </div>
@@ -249,7 +254,7 @@ useEffect(() => {
         </div>
 
         <div className = "div11">
-          <div style = {{display: 'flex',alignItems: 'center',gap:'100px',fontSize: 30,padding: 10}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: `${(30*scaleFactor)}`,padding: `${(10*scaleFactor)}`}}>
             <p>Lap: </p>
             <p>Lap Status: </p>
             <p><strong>Time:</strong> {telemetryData.current?.Time} </p>

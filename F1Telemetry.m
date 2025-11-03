@@ -8,6 +8,13 @@ disp('Connected to Python server.');
 
 x = 0; x2 = 0; x3 = 0;
 y = 0; y2 = 0; y3 = 0;
+baseWear = 1e-4;
+temps = [90,105,105,65,50];
+averageLoss = [(90/(25*90)),(90/(35*90)),(90/(45*90)),(90/(60*90)),(90/(50*90))];
+tyres = [s,m,h,int,w];
+
+optimalTemps = dictionary(temps,tyres);
+baseLoss = dictionary(averageLoss,tyres);
 
 while true
     try
@@ -37,11 +44,15 @@ while true
                 if y2 == 0 && y ~= 0
                     y2 = y;
                     x2 = x;
+                    t2 = t1
+                    speed2 = speed1
                 end
             end
 
             x = posData(1); 
             y = posData(2);
+            speed1 = speed;
+            t1 = Time;
 
             gf = NaN;
             angle_deg = NaN;
@@ -51,6 +62,7 @@ while true
                 section = angle_deg / 36;
                 data.Gforce = gf;
                 data.GforceAngle = angle_deg;
+                currentTyreWear = tyreWear(speed1, speed2, t1, t2);
             else
                 data.Gforce = NaN;
                 data.GforceAngle = NaN;
@@ -96,5 +108,30 @@ function [gf,angle_deg] = gforce(x1, x2, x3, y1, y2, y3, speed)
     dx = x2 - xc;
     dy = y2 - yc;
     angle_deg = rad2deg(atan2(dy, dx));
+end
+
+function tyres = tyreWear(speed1, speed2, t1, t2)
+    dt = t2 - t1;
+    dSpeed = (speed2 - speed1) / dt;
+    
+
+end
+
+
+function tyreNumber = tyreTypeAssignee(compound)
+    switch compound
+        case 'SOFT'
+            tyreNumber = 0;
+        case 'MEDIUM'
+            tyreNumber = 1;
+        case 'HARD'
+            tyreNumber = 2;
+        case 'INTERMEDIATE'
+            tyreNumber = 3;
+        otherwise
+            tyreNumber = 4;
+    end
+
+         
 end
 

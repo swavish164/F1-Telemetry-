@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { addMessageConsole } from "./consoleMessages";  
 
+var prev = false
+
 export function ThrottleBar({throttle}) {
   return (
     <div style={{
@@ -43,12 +45,20 @@ export function TelemetryConsole({ messages }) {
 }
 
 
-export function DRSBool({DRS}){
-  if(DRS <= 8){
-    return false
+export function DRSBool(DRS){
+  if(DRS > 8){
+    if(prev == false){
+      addMessageConsole('DRS enabled')
+      prev = true
+    }
+    return true 
   }
   else{
-    return true 
+    if(prev == true){
+      addMessageConsole('DRS disabled')
+      prev = false
+    }
+    return false
   }
 } 
 

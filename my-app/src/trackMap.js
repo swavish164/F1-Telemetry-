@@ -16,7 +16,6 @@ function TrackChart({trackData,driverColour,currentPos,trackRotation}){
 
         const ctx = chartRef.current.getContext("2d")
         const rotatedCurrentPos = currentPos ? RotatePosition(currentPos, trackRotation) : null;
-        console.log(rotatedCurrentPos)
 
         chartInstance.current = new Chart(ctx, {
             type: "scatter",
