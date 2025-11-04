@@ -89,6 +89,18 @@ async def run():
         sector3 = lando['Sector3Time']
 
         with conn:
+            data = {
+                'tyreCompound': tyreCompound,
+                'weather': weather
+            }
+
+            payload = {"type": "initial", "data": data}
+            json_str = json.dumps(payload) + "\n"
+            conn.sendall(json_str.encode("utf-8"))
+            response = conn.recv(4096)
+            received = response.decode("utf-8").strip()
+            await ws.send(json.dumps(received))
+
             for i in range(len(times) - 1):
                 diff = times[i + 1] - times[i]
 
@@ -101,7 +113,6 @@ async def run():
                     'Time': float(round(times.iloc[i].total_seconds(), 2)),
                     'PosData': [float(x.iloc[i]), float(y.iloc[i]), float(z.iloc[i])],
                     'DRS': float(drs.iloc[i]),
-                    'tyreCompound': tyreCompound
                 }
 
                 payload = {"type": "update", "data": data}
@@ -111,7 +122,6 @@ async def run():
                 conn.sendall(json_str.encode("utf-8"))
 
                 # Receive MATLAB
-                response = conn.recv(4096)
                 if not response:
                     print("MATLAB disconnected.")
                     break

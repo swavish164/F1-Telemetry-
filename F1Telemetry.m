@@ -24,6 +24,8 @@ tyres = 100;
 while true
     try
         if t.NumBytesAvailable > 0
+            raw = readline(t); 
+            jsonStr = char(raw);
             packet = jsondecode(jsonStr);
             if(packet.type == "initial")
                data = packet.data;
@@ -32,69 +34,71 @@ while true
                tyreNumber = tyreTypeAssignee(tyreCompound);
                loss = averageLoss(tyreNumber);
                optimalTemp = temps(tyreNumber);
-               airTemp = data.weather.airTemp;
-               pressure = data.weather.pressure;
-               trackTemp = data.weather.trackTemp;
-               windSpeed = data.weather.windSpeed;
+               airTemp = data.weather(1);
+               pressure = data.weather(3);
+               trackTemp = data.weather(5);
+               windSpeed = data.weather(7);
 
             end
-            raw = readline(t); 
-            jsonStr = char(raw);
-            
-            data = packet.data;
-            Time = data.Time;
-            rpm = data.RPM;
-            gear = data.Gear;
-            speed = data.Speed;
-            throttle = data.Throttle;
-            brake = data.Brake;
-            posData = data.PosData; 
-            drs = data.DRS;
-            
-            % --- shift history
-            if y~=0 && y2~=0
-                y3 = y2;
-                x3 = x2;
-                y2 = y;
-                x2 = x;
-            else
-                if y2 == 0 && y ~= 0
+            if(packet.type == "update")
+                raw = readline(t); 
+                jsonStr = char(raw);
+                
+                data = packet.data;
+                Time = data.Time;
+                rpm = data.RPM;
+                gear = data.Gear;
+                speed = data.Speed;
+                throttle = data.Throttle;
+                brake = data.Brake;
+                posData = data.PosData; 
+                drs = data.DRS;
+                
+                % --- shift history
+                if y~=0 && y2~=0
+                    y3 = y2;
+                    x3 = x2;
                     y2 = y;
                     x2 = x;
-                    t2 = t1;
-                    speed2 = speed1;
+                else
+                    if y2 == 0 && y ~= 0
+                        y2 = y;
+                        x2 = x;
+                        t2 = t1;
+                        speed2 = speed1;
+                    end
                 end
-            end
 
-            x = posData(1); 
-            y = posData(2);
-            speed1 = speed;
-            t1 = Time;
+                x = posData(1); 
+                y = posData(2);
+                speed1 = speed;
+                t1 = Time;
 
-            gf = NaN;
-            angle_deg = NaN;
+                gf = NaN;
+                angle_deg = NaN;
 
-            if y3 ~= 0
-                [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
-                section = angle_deg / 36;
-                data.Gforce = gf;
-                data.GforceAngle = angle_deg;
-                currentTyreWear = tyreWear(speed1, speed2, t1, t2);
+                if y3 ~= 0
+                    [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
+                    section = angle_deg / 36;
+                    data.Gforce = gf;
+                    data.GforceAngle = angle_deg;
+                    currentTyreWear = tyreWear(speed1, speed2, t1, t2);
+                else
+                    data.Gforce = NaN;
+                    data.GforceAngle = NaN;
+                end
+                
+                packet = struct("type","update",...
+                        "data",data);
+                jsonStrOut = jsonencode(packet);
+                write(t, uint8([jsonStrOut newline]));
+
+
+                x_prev = x;
+                y_prev = y;
             else
-                data.Gforce = NaN;
-                data.GforceAngle = NaN;
+                pause(0.05); 
             end
-            
-            packet = struct("type","update",...
-                    "data",data);
-            jsonStrOut = jsonencode(packet);
-            write(t, uint8([jsonStrOut newline]));
-
-
-            x_prev = x;
-            y_prev = y;
-        else
-            pause(0.05); 
         end
     catch e
         warning('Connection closed or error occurred: %s', e.message);
@@ -133,6 +137,7 @@ function tyres = tyreWear(speed1, speed2, t1, t2)
 
     wear = loss * temp * (gf)^1.3 * speedMult * windMult * pressureMult * dt;
     tyres = tyres + wear;
+     fprintf('Wear: %.6f, GF: %.2f, dt: %.2f\n', wear, gf, dt);
     
 
 end
@@ -160,15 +165,15 @@ end
 function tyreNumber = tyreTypeAssignee(compound)
     switch compound
         case 'SOFT'
-            tyreNumber = 0;
-        case 'MEDIUM'
             tyreNumber = 1;
-        case 'HARD'
+        case 'MEDIUM'
             tyreNumber = 2;
-        case 'INTERMEDIATE'
+        case 'HARD'
             tyreNumber = 3;
-        otherwise
+        case 'INTERMEDIATE'
             tyreNumber = 4;
+        otherwise
+            tyreNumber = 5;
     end
 
          
