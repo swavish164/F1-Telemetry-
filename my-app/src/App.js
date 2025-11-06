@@ -93,6 +93,7 @@ function TelemetryView() {
   const handleParsedMessage = (parsed) => {
     
     if (parsed.type === "weather") {
+      window.location.reload();
       const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.data || [];
       const weatherData = {
         airTemp,
@@ -131,6 +132,7 @@ function TelemetryView() {
         Gforce: parsed.data?.Gforce,
         GforceAngle: parsed.data?.GforceAngle || parsed.data?.GforceDir,
         DRS: parsed.data?.DRS,
+        TyreWear: parsed.data?.TyreWear,
         TyreCompound: parsed.data?.tyreCompound,
         TyreAge: parsed.data?.TyreAge,
         SectorTimes: parsed.data?.Sectors,
@@ -178,6 +180,7 @@ useEffect(() => {
   }
 }, [telemetryData.current?.Time]);
 
+console.log(telemetryData.current?.TyreWear)
 
   return (
     <div class = "parent">
@@ -230,9 +233,10 @@ useEffect(() => {
         
         </div>
         <div className = "div12">
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: (10*scaleFactor)}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(70*scaleFactor)}px`,fontSize: (25*scaleFactor),padding: (10*scaleFactor)}}>
           <p><strong>Tyre compound:</strong> {telemetryData.current?.TyreCompound} </p>
           <p><strong>Tyre Age:</strong> {telemetryData.current?.TyreAge} </p>
+          <p><strong>Tyre Wear:</strong> {telemetryData.current?.TyreWear}%</p>
           </div>
         </div>
         <div className="div9"> 

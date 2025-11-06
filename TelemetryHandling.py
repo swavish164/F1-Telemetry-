@@ -53,6 +53,7 @@ async def run():
 
         track_length = len(rotated_track)
         await ws.send(json.dumps({"type": "track_init", "length": track_length, "colour": colour, "rotation": track_angle}))
+
         for i in range(0, track_length, 10):
             chunk = rotated_track[i:i+10].tolist()
             await ws.send(json.dumps({"type": "track", "data": chunk}))
@@ -97,9 +98,8 @@ async def run():
             payload = {"type": "initial", "data": data}
             json_str = json.dumps(payload) + "\n"
             conn.sendall(json_str.encode("utf-8"))
-            response = conn.recv(4096)
-            received = response.decode("utf-8").strip()
-            await ws.send(json.dumps(received))
+
+            time.sleep(1)
 
             for i in range(len(times) - 1):
                 diff = times[i + 1] - times[i]
@@ -122,6 +122,7 @@ async def run():
                 conn.sendall(json_str.encode("utf-8"))
 
                 # Receive MATLAB
+                response = conn.recv(4096)
                 if not response:
                     print("MATLAB disconnected.")
                     break

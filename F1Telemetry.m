@@ -17,9 +17,19 @@ vBase = 300;
 velMult = 0.01;
 pMult = 0.02;
 wMult = 0.02;
-tyres = 100;
+currentTyreWear = 100;
 
-
+tyreCompound = '';
+weather = [];
+tyreNumber = 0;
+loss = 0;
+optimalTemp = 0;
+airTemp = 0;
+pressure = 0;
+trackTemp = 0;
+windSpeed = 0;
+speed2 = 0;
+t2 = 0;
 
 while true
     try
@@ -27,83 +37,101 @@ while true
             raw = readline(t); 
             jsonStr = char(raw);
             packet = jsondecode(jsonStr);
-            if(packet.type == "initial")
-               data = packet.data;
-               tyreCompound = data.tyreCompound;
-               weather = data.weather;
-               tyreNumber = tyreTypeAssignee(tyreCompound);
-               loss = averageLoss(tyreNumber);
-               optimalTemp = temps(tyreNumber);
-               airTemp = data.weather(1);
-               pressure = data.weather(3);
-               trackTemp = data.weather(5);
-               windSpeed = data.weather(7);
+            
+            if isfield(packet, 'type')
+                if strcmp(packet.type, 'initial')
+                   data = packet.data;
+                   tyreCompound = data.tyreCompound;
+                   weather = data.weather;
+                   tyreNumber = tyreTypeAssignee(tyreCompound);
+                   loss = averageLoss(tyreNumber);
+                   optimalTemp = temps(tyreNumber);
+                   airTemp = data.weather(1);
+                   pressure = data.weather(3);
+                   trackTemp = data.weather(5);
+                   windSpeed = data.weather(7);
 
-            end
-            if(packet.type == "update")
-                raw = readline(t); 
-                jsonStr = char(raw);
-                
-                data = packet.data;
-                Time = data.Time;
-                rpm = data.RPM;
-                gear = data.Gear;
-                speed = data.Speed;
-                throttle = data.Throttle;
-                brake = data.Brake;
-                posData = data.PosData; 
-                drs = data.DRS;
-                
-                % --- shift history
-                if y~=0 && y2~=0
-                    y3 = y2;
-                    x3 = x2;
-                    y2 = y;
-                    x2 = x;
-                else
-                    if y2 == 0 && y ~= 0
+                elseif strcmp(packet.type, 'update')
+                    data = packet.data;
+                    Time = data.Time;
+                    rpm = data.RPM;
+                    gear = data.Gear;
+                    speed = data.Speed;
+                    throttle = data.Throttle;
+                    brake = data.Brake;
+                    posData = data.PosData; 
+                    drs = data.DRS;
+                    
+                    if y~=0 && y2~=0
+                        y3 = y2;
+                        x3 = x2;
                         y2 = y;
                         x2 = x;
                         t2 = t1;
                         speed2 = speed1;
+                    else
+                        if y2 == 0 && y ~= 0
+                            y2 = y;
+                            x2 = x;
+                        end
                     end
+
+                    x = posData(1); 
+                    y = posData(2);
+                    speed1 = speed;
+                    t1 = Time;
+
+                    gf = NaN;
+                    angle_deg = NaN;
+
+                    if y3 ~= 0
+                        [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
+                        section = angle_deg / 36;
+                        data.Gforce = gf;
+                        data.GforceAngle = angle_deg;
+                        
+                        temp = calculateTemp(trackTemp, optimalTemp, tempMult);
+                        speedMult = calculateSpeedMult(speed, vBase, velMult);
+                        pressureMult = calculatePressureMult(pressure, pMult);
+                        windMult = calculateWindMult(windSpeed, wMult);
+                        
+                        currentTyreWear = tyreWear(currentTyreWear,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult);
+                        data.TyreWear = round(currentTyreWear,3);
+                    else
+                        data.Gforce = NaN;
+                        data.GforceAngle = NaN;
+                        data.currentTyreWear = NaN;
+                    end
+                    
+                    packet_out = struct("type","update",...
+                            "data",data);
+                    jsonStrOut = jsonencode(packet_out);
+                    write(t, uint8([jsonStrOut newline]));
+
+                    x_prev = x;
+                    y_prev = y;
                 end
-
-                x = posData(1); 
-                y = posData(2);
-                speed1 = speed;
-                t1 = Time;
-
-                gf = NaN;
-                angle_deg = NaN;
-
-                if y3 ~= 0
-                    [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
-                    section = angle_deg / 36;
-                    data.Gforce = gf;
-                    data.GforceAngle = angle_deg;
-                    currentTyreWear = tyreWear(speed1, speed2, t1, t2);
-                else
-                    data.Gforce = NaN;
-                    data.GforceAngle = NaN;
-                end
-                
-                packet = struct("type","update",...
-                        "data",data);
-                jsonStrOut = jsonencode(packet);
-                write(t, uint8([jsonStrOut newline]));
-
-
-                x_prev = x;
-                y_prev = y;
             else
                 pause(0.05); 
             end
+        else
+            pause(0.05);
         end
     catch e
-        warning('Connection closed or error occurred: %s', e.message);
-        break;
+    fprintf(2, '\n Error\n');
+    fprintf(2, 'Message: %s\n', e.message);
+    if ~isempty(e.stack)
+        fprintf(2, 'File: %s\n', e.stack(1).file);
+        fprintf(2, 'Function: %s\n', e.stack(1).name);
+        fprintf(2, 'Line: %d\n', e.stack(1).line);
+        fprintf(2, '--- Full stack trace ---\n');
+        for s = 1:numel(e.stack)
+            fprintf(2, '  %d) %s (line %d)\n', s, e.stack(s).file, e.stack(s).line);
+        end
     end
+    fprintf(2, '--------------------------\n\n');
+    break;
+end
 end
 
 clear t 
@@ -125,42 +153,62 @@ function [gf,angle_deg] = gforce(x1, x2, x3, y1, y2, y3, speed)
         xc = NaN;
         yc = NaN;
     end
-    gf = (speed^2 / r) / 9.8;
-    dx = x2 - xc;
-    dy = y2 - yc;
-    angle_deg = rad2deg(atan2(dy, dx));
-end
-
-function tyres = tyreWear(speed1, speed2, t1, t2)
-    dt = t2 - t1;
-    dSpeed = (speed2 - speed1) / dt;
-
-    wear = loss * temp * (gf)^1.3 * speedMult * windMult * pressureMult * dt;
-    tyres = tyres + wear;
-     fprintf('Wear: %.6f, GF: %.2f, dt: %.2f\n', wear, gf, dt);
     
-
+    if ~isnan(r) && r ~= 0
+        gf = (speed^2 / r) / 9.8;
+        dx = x2 - xc;
+        dy = y2 - yc;
+        angle_deg = rad2deg(atan2(dy, dx));
+    else
+        gf = NaN;
+        angle_deg = NaN;
+    end
 end
 
-function temp = calculateTemp()
+function currentWear = tyreWear(tyres,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult)
+    if t2 == t1
+        dt = 0.01;
+    else
+        dt = t2 - t1;
+    end
+    
+    if dt == 0
+        dSpeed = 0;
+    else
+        dSpeed = (speed2 - speed1) / dt;
+    end
+
+    if isnan(gf)
+        gf = 1;
+    end
+    
+    wear = loss * temp * (gf)^1.3 * speedMult * windMult * pressureMult * dt;
+    currentWear = tyres + wear;
+end
+
+function temp = calculateTemp(trackTemp, optimalTemp, tempMult)
+    if iscell(trackTemp), trackTemp = cell2mat(trackTemp); end
+    if iscell(optimalTemp), optimalTemp = cell2mat(optimalTemp); end
     diff = abs(trackTemp - optimalTemp);
     temp = 1 + tempMult * (diff / optimalTemp);
 end
-function speedMult = calculateSpeedMult()
+
+function speedMult = calculateSpeedMult(speed, vBase, velMult)
     ratio = speed / vBase;
     speedMult = 1 + velMult * ratio;
 end
 
-function pressureMult = calculatePressureMult()
-    ratio = (pressure - 1013) /1013;
+function pressureMult = calculatePressureMult(pressure, pMult)
+    if iscell(pressure), pressure = cell2mat(pressure); end
+    ratio = (pressure - 1013) / 1013;
     pressureMult = 1 - pMult * ratio;
 end
 
-function windMult = calculateWindMult()
+function windMult = calculateWindMult(windSpeed, wMult)
+    if iscell(windSpeed), windSpeed = cell2mat(windSpeed); end
     ratio = windSpeed / 100;
     windMult = 1 - wMult * ratio;
 end
-
 
 function tyreNumber = tyreTypeAssignee(compound)
     switch compound
@@ -175,7 +223,4 @@ function tyreNumber = tyreTypeAssignee(compound)
         otherwise
             tyreNumber = 5;
     end
-
-         
 end
-
