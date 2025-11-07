@@ -17,9 +17,13 @@ vBase = 300;
 velMult = 0.01;
 pMult = 0.02;
 wMult = 0.02;
-currentTyreWear = 100;
+currentTyreWear = [100, 100, 100, 100];
 
 tyreCompound = '';
+baseMass = 800;
+heightCentreG = 0.3;
+wheelBase = 3.6;
+trackWidth = 1.6
 weather = [];
 tyreNumber = 0;
 loss = 0;
@@ -30,6 +34,7 @@ trackTemp = 0;
 windSpeed = 0;
 speed2 = 0;
 t2 = 0;
+
 
 while true
     try
@@ -85,7 +90,7 @@ while true
                     angle_deg = NaN;
 
                     if y3 ~= 0
-                        [gf,angle_deg] = gforce(x, x2, x3, y, y2, y3, speed);
+                        [gf,angle_deg,xCentre,yCentre] = gforce(x, x2, x3, y, y2, y3, speed);
                         section = angle_deg / 36;
                         data.Gforce = gf;
                         data.GforceAngle = angle_deg;
@@ -94,9 +99,23 @@ while true
                         speedMult = calculateSpeedMult(speed, vBase, velMult);
                         pressureMult = calculatePressureMult(pressure, pMult);
                         windMult = calculateWindMult(windSpeed, wMult);
+
+                        velocityX = x - x2;
+                        velocityY = y - y2;
+                        vecX = xCentre - x2;
+                        vecY = yCentre - y2;
+                        directionSign = sign(velocityX * vecY - velocityY * vecX);
+                        latA = gf * 9.81 * directionSign;
+                        if brake
+                          longA = -8.0;               
+                        else
+                            longA = (throttle/100) * 1.5;
+                        end
                         
-                        currentTyreWear = tyreWear(currentTyreWear,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult);
+                        currentTyreWear = tyreWear(currentTyreWear,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult,longA,latA,baseMass,wheelBase,trackWidth,heightCentreG);
+                        disp(currentTyreWear);
                         data.TyreWear = round(currentTyreWear,3);
+
                     else
                         data.Gforce = NaN;
                         data.GforceAngle = NaN;
@@ -136,7 +155,7 @@ end
 
 clear t 
 
-function [gf,angle_deg] = gforce(x1, x2, x3, y1, y2, y3, speed)
+function [gf,angle_deg,xCentre,yCentre] = gforce(x1, x2, x3, y1, y2, y3, speed)
     A = [x1, y1, 1;
          x2, y2, 1;
          x3, y3, 1];
@@ -147,25 +166,31 @@ function [gf,angle_deg] = gforce(x1, x2, x3, y1, y2, y3, speed)
         sol = A\B;
         a = sol(1); b = sol(2); c = sol(3);
         r = sqrt((a^2 + b^2)/4 - c); 
-        xc = -a/2; yc = -b/2; 
+        xCentre = -a/2; yCentre = -b/2; 
     catch
         r = NaN;
-        xc = NaN;
-        yc = NaN;
+        xCentre = NaN;
+        yCentre = NaN;
     end
     
     if ~isnan(r) && r ~= 0
         gf = (speed^2 / r) / 9.8;
-        dx = x2 - xc;
-        dy = y2 - yc;
+        dx = x2 - xCentre;
+        dy = y2 - yCentre;
         angle_deg = rad2deg(atan2(dy, dx));
     else
         gf = NaN;
         angle_deg = NaN;
+        xCentre = NaN;
+        yCentre = NaN;
+
     end
 end
 
-function currentWear = tyreWear(tyres,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult)
+function currentWear = tyreWear(tyres,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult,longA,latA,baseMass,wheelBase,trackWidth,heightCentreG)
+    loadTranserLong = (baseMass * longA * heightCentreG) / wheelBase;
+    loadTranserLat = (baseMass * latA * heightCentreG) / trackWidth;
+
     if t2 == t1
         dt = 0.01;
     else
@@ -183,7 +208,20 @@ function currentWear = tyreWear(tyres,speed1, speed2, t1, t2, loss, temp, gf, sp
     end
     
     wear = loss * temp * (gf)^1.3 * speedMult * windMult * pressureMult * dt;
-    currentWear = tyres + wear;
+
+    weight = baseMass * 9.81
+    tyreBase = weight / 4
+    frontLeft = tyreBase - 0.5*loadTranserLong - 0.5*loadTranserLat;
+    frontRight = tyreBase - 0.5*loadTranserLong + 0.5*loadTranserLat;
+    rearLeft = tyreBase + 0.5*loadTranserLong - 0.5*loadTranserLat;
+    rearRight = tyreBase + 0.5*loadTranserLong + 0.5*loadTranserLat;
+    wheelLoads = [frontLeft, frontRight, rearLeft, rearRight]
+    wheelLoads(wheelLoads< 1) = 1;
+    loadFactors = wheelLoads ./ tyreBase;
+    tyreWears = wear .* loadFactors;
+
+
+    currentWear = tyres + tyreWears;
 end
 
 function temp = calculateTemp(trackTemp, optimalTemp, tempMult)
@@ -208,6 +246,14 @@ function windMult = calculateWindMult(windSpeed, wMult)
     if iscell(windSpeed), windSpeed = cell2mat(windSpeed); end
     ratio = windSpeed / 100;
     windMult = 1 - wMult * ratio;
+end
+
+function [longForce,latForce] = longLatComponent(gf,throttle,brake,angle)
+    longForce = (throttle/100)*1.5;
+    if brake
+        longForce = -8.0;
+    end
+    latForce = gf * 9.81 * sind(angle);
 end
 
 function tyreNumber = tyreTypeAssignee(compound)

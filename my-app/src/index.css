@@ -29,8 +29,8 @@ code {
     "c c c c c d f f f f f g g g g"
     "c c c c c d f f f f f g g g g"
     "c c c c c e f f f f f g g g g"
-    "h h h h h l l l l l l i i i i"
-    "h h h h h l l l l l l i i i i"
+    "h h h h h l l l m m m i i i i"
+    "h h h h h l l l m m m i i i i"
     "j j j j j j k k k k k i i i i"
     "j j j j j j k k k k k i i i i";
   gap: 8px;
@@ -60,8 +60,9 @@ padding: 0px 15px;}
 overflow: auto;}
 .div11 { grid-area: k; }
 .div12 { grid-area: l; }
+.div13 { grid-area: m; }
 
-.div1, .div2, .div3, .div4, .div6, .div7, .div8, .div9,.div10,.div11,.div12 {
+.div1, .div2, .div3, .div4, .div6, .div7, .div8, .div9,.div10,.div11,.div12,.div13 {
   border: 1px solid hwb(33 9% 19%);
   color: white;
   background-color: rgba(0, 0, 0, 0.1);

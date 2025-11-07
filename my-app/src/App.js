@@ -236,7 +236,17 @@ console.log(telemetryData.current?.TyreWear)
           <div style = {{display: 'flex',alignItems: 'center',gap:`${(70*scaleFactor)}px`,fontSize: (25*scaleFactor),padding: (10*scaleFactor)}}>
           <p><strong>Tyre compound:</strong> {telemetryData.current?.TyreCompound} </p>
           <p><strong>Tyre Age:</strong> {telemetryData.current?.TyreAge} </p>
-          <p><strong>Tyre Wear:</strong> {telemetryData.current?.TyreWear}%</p>
+          </div>
+        </div>
+
+        <div className = "div13">
+          <div style = {{display: 'flex',alignItems: 'center',gap:(20*scaleFactor),fontSize: (25*scaleFactor)}}>
+          <p>FL: {telemetryData.current?.TyreWear[0]}%</p>
+          <p>FR: {telemetryData.current?.TyreWear[1]}% </p>
+          </div>
+          <div style = {{display: 'flex',alignItems: 'center',gap:(20*scaleFactor),fontSize: (25*scaleFactor)}}>
+          <p>RL: {telemetryData.current?.TyreWear[2]}% </p>
+          <p>RR: {telemetryData.current?.TyreWear[3]}%</p>
           </div>
         </div>
         <div className="div9"> 
