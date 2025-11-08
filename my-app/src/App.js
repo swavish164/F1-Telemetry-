@@ -180,7 +180,13 @@ useEffect(() => {
   }
 }, [telemetryData.current?.Time]);
 
-console.log(telemetryData.current?.TyreWear)
+console.log(telemetryData.current)
+
+const tyreWearArray = telemetryData.current?.TyreWear;
+
+const tyreWear = Array.isArray(tyreWearArray)
+  ? tyreWearArray
+  : [100, 100, 100, 100];
 
   return (
     <div class = "parent">
@@ -239,14 +245,36 @@ console.log(telemetryData.current?.TyreWear)
           </div>
         </div>
 
-        <div className = "div13">
-          <div style = {{display: 'flex',alignItems: 'center',gap:(20*scaleFactor),fontSize: (25*scaleFactor)}}>
-          <p>FL: {telemetryData.current?.TyreWear[0]}%</p>
-          <p>FR: {telemetryData.current?.TyreWear[1]}% </p>
-          </div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:(20*scaleFactor),fontSize: (25*scaleFactor)}}>
-          <p>RL: {telemetryData.current?.TyreWear[2]}% </p>
-          <p>RR: {telemetryData.current?.TyreWear[3]}%</p>
+        <div className="div13">
+          <div className="grid-table">
+            <div className="grid-cell">
+              <div className="cell-content">
+                <div className="position">FL</div>
+                <div className="label">Tyre Wear</div>
+                <strong>{tyreWear[0] ?? 100}%</strong>
+              </div>
+            </div>
+            <div className="grid-cell">
+              <div className="cell-content">
+                <div className="position">FR</div>
+                <div className="label">Tyre Wear</div>
+                <strong>{tyreWear[1] ?? 100}%</strong>
+              </div>
+            </div>
+            <div className="grid-cell">
+              <div className="cell-content">
+                <div className="position">RL</div>
+                <div className="label">Tyre Wear</div>
+                <strong>{tyreWear[2] ?? 100}%</strong>
+              </div>
+            </div>
+            <div className="grid-cell">
+              <div className="cell-content">
+                <div className="position">RR</div>
+                <div className="label">Tyre Wear</div>
+                <strong>{tyreWear[3] ?? 100}%</strong>
+              </div>
+            </div>
           </div>
         </div>
         <div className="div9"> 
@@ -263,12 +291,12 @@ console.log(telemetryData.current?.TyreWear)
         </div>
         
         <div className="div10">
-          <p>Console</p>
+          <p>Console:</p>
           <TelemetryConsole messages = {messages}/>
         </div>
 
         <div className = "div11">
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: `${(30*scaleFactor)}`,padding: `${(10*scaleFactor)}`}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`}}>
             <p>Lap: </p>
             <p>Lap Status: </p>
             <p><strong>Time:</strong> {telemetryData.current?.Time} </p>

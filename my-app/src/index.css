@@ -62,9 +62,53 @@ overflow: auto;}
 .div12 { grid-area: l; }
 .div13 { grid-area: m; }
 
-.div1, .div2, .div3, .div4, .div6, .div7, .div8, .div9,.div10,.div11,.div12,.div13 {
+.div1, .div2, .div3, .div4, .div6, .div7, .div8, .div9,.div10,.div11,.div12{
   border: 1px solid hwb(33 9% 19%);
   color: white;
   background-color: rgba(0, 0, 0, 0.1);
 }
+.div13 {
+  display: flex;
+  padding: 2px;
+}
 
+.grid-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 4px;
+  height: 100%;
+  width: 100%;
+}
+
+.grid-cell {
+  border: 1px solid hwb(33 9% 19%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.cell-content {
+  font-size: 0.7rem;
+  color: white;
+}
+
+.position {
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.label {
+  font-size: 0.6rem;
+  color: hwb(33 9% 19%);
+  margin: 1px 0;
+}
+
+.cell-content strong {
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 1px;
+}

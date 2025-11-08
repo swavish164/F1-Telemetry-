@@ -23,7 +23,7 @@ tyreCompound = '';
 baseMass = 800;
 heightCentreG = 0.3;
 wheelBase = 3.6;
-trackWidth = 1.6
+trackWidth = 1.6;
 weather = [];
 tyreNumber = 0;
 loss = 0;
@@ -113,8 +113,9 @@ while true
                         end
                         
                         currentTyreWear = tyreWear(currentTyreWear,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult,longA,latA,baseMass,wheelBase,trackWidth,heightCentreG);
-                        disp(currentTyreWear);
-                        data.TyreWear = round(currentTyreWear,3);
+                        data.TyreWear = repmat(round(currentTyreWear, 3), 1, 4);
+                        data.TyreCompound = tyreCompound;
+                        disp(round(currentTyreWear,3))
 
                     else
                         data.Gforce = NaN;
@@ -209,13 +210,13 @@ function currentWear = tyreWear(tyres,speed1, speed2, t1, t2, loss, temp, gf, sp
     
     wear = loss * temp * (gf)^1.3 * speedMult * windMult * pressureMult * dt;
 
-    weight = baseMass * 9.81
-    tyreBase = weight / 4
+    weight = baseMass * 9.81;
+    tyreBase = weight / 4;
     frontLeft = tyreBase - 0.5*loadTranserLong - 0.5*loadTranserLat;
     frontRight = tyreBase - 0.5*loadTranserLong + 0.5*loadTranserLat;
     rearLeft = tyreBase + 0.5*loadTranserLong - 0.5*loadTranserLat;
     rearRight = tyreBase + 0.5*loadTranserLong + 0.5*loadTranserLat;
-    wheelLoads = [frontLeft, frontRight, rearLeft, rearRight]
+    wheelLoads = [frontLeft, frontRight, rearLeft, rearRight];
     wheelLoads(wheelLoads< 1) = 1;
     loadFactors = wheelLoads ./ tyreBase;
     tyreWears = wear .* loadFactors;
