@@ -58,7 +58,7 @@ async def run():
             chunk = rotated_track[i:i+10].tolist()
             await ws.send(json.dumps({"type": "track", "data": chunk}))
 
-        await ws.send(json.dumps({"type": "Other data", "compound": tyreCompound, "life": tyreLife}))
+        await ws.send(json.dumps({"type": "Other data", "compound": tyreCompound}))
 
         # MATLAB server
         host, port = '127.0.0.1', 65432

@@ -14,6 +14,7 @@ function TelemetryView() {
   const [driverColour,setDriverColour] = useState(null);
   const [trackPoints,setTrackPoints] = useState([]);
   const [trackRotation, setTrackRotation] = useState("");
+  const [tyreCompound,setTyreCompound] = useState(null);
   const [expectedOpen, setExpectedOpen] = useState(false);
   const [deltaOpen, setDeltaOpen] = useState(false);
   const [expectedPaceS3, setExpectedPaceS3] = useState("");
@@ -93,7 +94,7 @@ function TelemetryView() {
   const handleParsedMessage = (parsed) => {
     
     if (parsed.type === "weather") {
-      window.location.reload();
+      //window.location.reload();
       const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.data || [];
       const weatherData = {
         airTemp,
@@ -133,17 +134,20 @@ function TelemetryView() {
         GforceAngle: parsed.data?.GforceAngle || parsed.data?.GforceDir,
         DRS: parsed.data?.DRS,
         TyreWear: parsed.data?.TyreWear,
-        TyreCompound: parsed.data?.tyreCompound,
         TyreAge: parsed.data?.TyreAge,
         SectorTimes: parsed.data?.Sectors,
         //TrackMessages: parsed.data?.Messages,
         //SessionStatus: parsed.data?.SessionStatus
       };
-      
       setTelemetryData(prev => ({
         ...prev,
         current: telemetry
       }));
+    }
+    else if(parsed.type === "Other data"){
+      setTyreCompound(parsed.compound);
+
+
     } 
   };
   useEffect(() => {
@@ -230,7 +234,7 @@ const tyreWear = Array.isArray(tyreWearArray)
         </div>
         <div className="div8"> 
           <div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(80*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: (10*scaleFactor)}}>
+          <div style = {{display: 'flex',alignItems: 'center',gap:`${(80*scaleFactor)}px`,justifyContent: 'center',fontSize: (30*scaleFactor),padding: (10*scaleFactor)}}>
           <p><strong>Gear:</strong> {telemetryData.current?.Gear}</p>
           <p><strong>Speed: </strong> {telemetryData.current?.Speed} km/h </p>
           <p><strong>DRS:</strong> {DRSBool(telemetryData.current?.DRS) ? "Active" : "Off" } </p>
@@ -239,10 +243,10 @@ const tyreWear = Array.isArray(tyreWearArray)
         
         </div>
         <div className = "div12">
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(70*scaleFactor)}px`,fontSize: (25*scaleFactor),padding: (10*scaleFactor)}}>
-          <p><strong>Tyre compound:</strong> {telemetryData.current?.TyreCompound} </p>
-          <p><strong>Tyre Age:</strong> {telemetryData.current?.TyreAge} </p>
-          </div>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: (25*scaleFactor),gap:`${(10 * scaleFactor)}px`,marginTop: `${(25 * scaleFactor)}px`}}>
+  <p style={{margin: 0}}><strong>Tyre compound:</strong> {tyreCompound}</p>
+  <p style={{margin: 0}}><strong>Tyre Age:</strong> {telemetryData.current?.TyreAge}</p>
+</div>
         </div>
 
         <div className="div13">
@@ -278,15 +282,16 @@ const tyreWear = Array.isArray(tyreWearArray)
           </div>
         </div>
         <div className="div9"> 
-            <div style = {{display: 'flex',alignItems: 'center',gap:(45*scaleFactor),fontSize: (30*scaleFactor),padding: 4}}>
+            <div style = {{display: 'flex',alignItems: 'center',gap:(30*scaleFactor),justifyContent: 'center',fontSize: (25*scaleFactor),padding: 4,marginTop: `${(25 * scaleFactor)}px`}}>
           <strong>Sector 1:</strong> <p style={{color: sectorTimesCalculations[0][1]}}>{sectorTimesCalculations[0][0]}</p>
           <strong>Sector 2:</strong> <p style={{color: sectorTimesCalculations[1][1]}}>{sectorTimesCalculations[1][0]}</p>
           <strong>Sector 3:</strong> <p style={{color: sectorTimesCalculations[2][1]}}>{sectorTimesCalculations[2][0]}</p>
-          </div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(45*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: 0}}>
+          <div style = {{display: 'flex',flexDirection: 'column',alignItems: 'center',justifyContent: 'center',gap:`${(10*scaleFactor)}px`,fontSize: (30*scaleFactor),padding: 0}}>
           <button className="open-button" onClick={() => setExpectedOpen(true)}>Change Expected</button>
           <button className="open-button" onClick={() => setDeltaOpen(true)}>Change Delta</button>
           </div>
+          </div>
+    
         
         </div>
         
@@ -296,7 +301,7 @@ const tyreWear = Array.isArray(tyreWearArray)
         </div>
 
         <div className = "div11">
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`}}>
+          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`,marginTop: `${(20*scaleFactor)}`}}>
             <p>Lap: </p>
             <p>Lap Status: </p>
             <p><strong>Time:</strong> {telemetryData.current?.Time} </p>
