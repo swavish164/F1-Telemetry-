@@ -133,7 +133,7 @@ async def run():
                                                 round(sector2.total_seconds(), 2), round(sector3.total_seconds(), 2)]
 
                 # processed["Messages"] = raceDirectorMessages.iloc[i]
-                # processed["SessionStatus"] = sessionStatus.iloc[i]
+                processed["data"]["SessionStatus"] = sessionStatus['Status'].iloc[1]
 
                 # Forward to FastAPI websocket
                 await ws.send(json.dumps(processed))

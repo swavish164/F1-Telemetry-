@@ -115,7 +115,6 @@ while true
                         currentTyreWear = tyreWear(currentTyreWear,speed1, speed2, t1, t2, loss, temp, gf, speedMult, windMult, pressureMult,longA,latA,baseMass,wheelBase,trackWidth,heightCentreG);
                         data.TyreWear = repmat(round(currentTyreWear, 3), 1, 4);
                         data.TyreCompound = tyreCompound;
-                        disp(round(currentTyreWear,3))
 
                     else
                         data.Gforce = NaN;

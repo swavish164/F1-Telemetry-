@@ -69,16 +69,20 @@ overflow: auto;}
 }
 .div13 {
   display: flex;
-  padding: 2px;
+  padding: clamp(1px, 0.3vw, 4px);
+  min-width: 0;
+  min-height: 0;
 }
 
 .grid-table {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 4px;
+  gap: clamp(1px, 0.4vw, 6px);
   height: 100%;
   width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .grid-cell {
@@ -86,29 +90,153 @@ overflow: auto;}
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
-  text-align: center;
+  padding: clamp(1px, 0.4vw, 6px);
   background-color: rgba(0, 0, 0, 0.2);
+  min-width: 0;
+  min-height: 0;
 }
 
 .cell-content {
-  font-size: 0.7rem;
+  text-align: center;
+  min-width: 0;
+  min-height: 0;
   color: white;
 }
 
 .position {
   font-weight: bold;
-  font-size: 0.8rem;
+  font-size: clamp(0.45rem, 1vw, 0.8rem);
 }
 
 .label {
-  font-size: 0.6rem;
+  font-size: clamp(0.35rem, 0.8vw, 0.6rem);
   color: hwb(33 9% 19%);
-  margin: 1px 0;
 }
 
 .cell-content strong {
   display: block;
-  font-size: 0.8rem;
+  font-size: clamp(0.5rem, 1.2vw, 0.9rem);
   margin-top: 1px;
+}
+
+this is the froms css: .App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.chart-container {
+  border: 5px solid black;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+.open-button {
+  background-color: #555;
+  color: white;
+  padding: 0px 8px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.9;
+  border-radius: 5px;
+  margin: 0px;
+}
+
+.open-button:hover {
+  opacity: 1;
+}
+
+.form-popup {
+  position: fixed;
+  bottom: 0;
+  right: 15px;
+  border: 3px solid #ffa200;
+  z-index: 9;
+}
+
+.form-container {
+  max-width: 300px;
+  padding: 10px;
+  background-color: rgb(0, 0, 0);
+}
+
+.form-container input[type=text], .form-container input[type=password] {
+  width: 90%;
+  padding: 15px;
+  margin: 5px 0 22px 0;
+  border: none;
+  background: #f1f1f1;
+}
+
+.form-container input[type=text]:focus, .form-container input[type=password]:focus {
+  background-color: #ddd;
+  outline: none;
+  width: 90%;
+}
+
+.form-container .btn {
+  background-color: #04AA6D;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom:10px;
+  opacity: 0.8;
+}
+
+.form-container .cancel {
+  background-color: red;
+}
+
+.form-container .btn:hover, .open-button:hover {
+  opacity: 1;
+}
+
+
+.table-container {
+  padding: 1.5rem;
+}
+
+.form-container,
+.form-container h1,
+.form-container label,
+.form-container b {
+  color: white;
 }

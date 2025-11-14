@@ -95,12 +95,12 @@ function TelemetryView() {
     
     if (parsed.type === "weather") {
       //window.location.reload();
-      const [airTemp, pressure, rainfall, humidity, trackTemp, windDirection, windSpeed] = parsed.data || [];
+      const [airTemp,humidity, pressure, rainfall, trackTemp, windDirection, windSpeed] = parsed.data || [];
       const weatherData = {
         airTemp,
         humidity,
         pressure,
-        icon: rainfall ? "fa-solid fa-cloud-showers-heavy" : "fas fa-sun",
+        rainfall: rainfall ? "Yes" : "No",
         trackTemp,
         windDirection,
         windSpeed,
@@ -137,7 +137,7 @@ function TelemetryView() {
         TyreAge: parsed.data?.TyreAge,
         SectorTimes: parsed.data?.Sectors,
         //TrackMessages: parsed.data?.Messages,
-        //SessionStatus: parsed.data?.SessionStatus
+        SessionStatus: parsed.data?.SessionStatus
       };
       setTelemetryData(prev => ({
         ...prev,
@@ -184,8 +184,6 @@ useEffect(() => {
   }
 }, [telemetryData.current?.Time]);
 
-console.log(telemetryData.current)
-
 const tyreWearArray = telemetryData.current?.TyreWear;
 
 const tyreWear = Array.isArray(tyreWearArray)
@@ -202,12 +200,12 @@ const tyreWear = Array.isArray(tyreWearArray)
         </div>
         <div className="div2"> 
         <div style={{ height: '30%'}}>
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(15*scaleFactor)}px`,fontSize: (22*scaleFactor),padding: (6*scaleFactor)}}>
+          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(15*scaleFactor)}px`,fontSize: (22*scaleFactor),padding: (6*scaleFactor)}}>
           <strong>Air Temp:</strong> {telemetryData.weather?.airTemp}°C
           <strong>Pressure:</strong> {telemetryData.weather?.pressure}hPa
-          <strong>Rainfall:</strong><i class={telemetryData.weather?.icon}></i>
+          <strong>Rainfall:</strong> {telemetryData.weather?.rainfall}
           </div>
-          <div style = {{display: 'flex',alignItems: 'center',gap:`${(15*scaleFactor)}px`,fontSize: 22*scaleFactor,padding: (6*scaleFactor)}}>
+          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(15*scaleFactor)}px`,fontSize: 22*scaleFactor,padding: (6*scaleFactor)}}>
           <strong>Humidity:</strong> {telemetryData.weather?.humidity}%
           <strong>Track Temp:</strong> {telemetryData.weather?.trackTemp}°C
           </div>
@@ -254,28 +252,24 @@ const tyreWear = Array.isArray(tyreWearArray)
             <div className="grid-cell">
               <div className="cell-content">
                 <div className="position">FL</div>
-                <div className="label">Tyre Wear</div>
                 <strong>{tyreWear[0] ?? 100}%</strong>
               </div>
             </div>
             <div className="grid-cell">
               <div className="cell-content">
                 <div className="position">FR</div>
-                <div className="label">Tyre Wear</div>
                 <strong>{tyreWear[1] ?? 100}%</strong>
               </div>
             </div>
             <div className="grid-cell">
               <div className="cell-content">
                 <div className="position">RL</div>
-                <div className="label">Tyre Wear</div>
                 <strong>{tyreWear[2] ?? 100}%</strong>
               </div>
             </div>
             <div className="grid-cell">
               <div className="cell-content">
                 <div className="position">RR</div>
-                <div className="label">Tyre Wear</div>
                 <strong>{tyreWear[3] ?? 100}%</strong>
               </div>
             </div>
@@ -296,17 +290,17 @@ const tyreWear = Array.isArray(tyreWearArray)
         </div>
         
         <div className="div10">
-          <p>Console:</p>
+          <p style = {{display: 'flex',alignItems: 'center',justifyContent: 'center',fontSize: (25*scaleFactor),marginTop: `${(25 * scaleFactor)}px`}}>Console:</p>
           <TelemetryConsole messages = {messages}/>
         </div>
 
         <div className = "div11">
-          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(100*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`,marginTop: `${(20*scaleFactor)}`}}>
-            <p>Lap: </p>
-            <p>Lap Status: </p>
-            <p><strong>Time:</strong> {telemetryData.current?.Time} </p>
+          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(75*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`,marginTop: `${(20*scaleFactor)}`,marginBottom:`${(30*scaleFactor)}`}}>
+            <p><strong>Lap: </strong></p>
+            <p><strong>Lap Status: </strong></p>
+            <p><strong>Session Status:</strong> {telemetryData.current?.SessionStatus}</p>
           </div>
-          <p><strong>Session Status:</strong> {telemetryData.current?.SessionStatus}</p>
+          <p style = {{display: 'flex',alignItems: 'center',justifyContent: 'center',marginTop: `${(20*scaleFactor)}`,fontSize: (30*scaleFactor)}}><strong>Time:</strong> {telemetryData.current?.Time}</p>
         </div>
       {/* Popup Forms */}
       {expectedOpen && (
@@ -325,8 +319,8 @@ const tyreWear = Array.isArray(tyreWearArray)
                 }
               }}>
             <h1>Expected Pace</h1>
-            <label><b>New Expected Pace</b></label>
-            <input type="text" placeholder="Enter New Expected Pace For Each Sector (With Spaces)" onChange = {(e) => setExpectedInput(e.target.value)} required />
+            <label><b>New Expected Pace (With Spaces)</b></label>
+            <input type="text" placeholder="Enter New Expected Pace For Each Sector" onChange = {(e) => setExpectedInput(e.target.value)} required />
             <button type="submit" className="btn">Confirm</button>
             <button type="button" className="btn cancel" onClick={() => setExpectedOpen(false)}>Close</button>
           </form>
@@ -349,8 +343,8 @@ const tyreWear = Array.isArray(tyreWearArray)
                 }
               }}>
             <h1>Delta Pace</h1>
-            <label><b>New Delta Pace</b></label>
-            <input type="text" placeholder="Enter New Delta Pace For Each Sector (With Spaces)" onChange = {(e) => setDeltaInput(e.target.value)} required />
+            <label><b>New Delta Pace (With Spaces)</b></label>
+            <input type="text" placeholder="Enter New Delta Pace For Each Sector" onChange = {(e) => setDeltaInput(e.target.value)} required />
             <button type="submit" className="btn">Confirm</button>
             <button type="button" className="btn cancel" onClick={() => setDeltaOpen(false)}>Close</button>
           </form>
