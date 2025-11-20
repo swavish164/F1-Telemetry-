@@ -136,6 +136,7 @@ function TelemetryView() {
         TyreWear: parsed.data?.TyreWear,
         TyreAge: parsed.data?.TyreAge,
         SectorTimes: parsed.data?.Sectors,
+        lapNumber: parsed.data?.lapNumber,
         //TrackMessages: parsed.data?.Messages,
         SessionStatus: parsed.data?.SessionStatus
       };
@@ -166,20 +167,21 @@ const xScaleFactor = window.innerWidth / 1920
 const yScaleFactor = window.innerHeight / 1080
 const scaleFactor = Math.min(xScaleFactor,yScaleFactor)
 
-
-
 useEffect(() => {
   if (telemetryData.current?.Time > sectorTimes[0] && lastCompletedSector < 1) {
     addMessageConsole(`Sector 1 complete: ${sectorTimes[0]}s`);
+    addMessageConsole(`Expected: ${expectedPaceS1 - sectorTimes[0]} Delta: ${deltaPaceS1 - sectorTimes[0]}`)
     setLastCompletedSector(1);
   } else if (telemetryData.current?.Time > sectorTimes[0] + sectorTimes[1] && lastCompletedSector < 2) {
     addMessageConsole(`Sector 2 complete: ${sectorTimes[1]}s`);
+    addMessageConsole(`Expected: ${expectedPaceS2 - sectorTimes[1]} Delta: ${deltaPaceS2 - sectorTimes[1]}`)
     setLastCompletedSector(2);
   } else if (
     telemetryData.current?.Time > sectorTimes[0] + sectorTimes[1] + sectorTimes[2] &&
     lastCompletedSector < 3
   ) {
     addMessageConsole(`Sector 3 complete: ${sectorTimes[2]}s`);
+    addMessageConsole(`Expected: ${expectedPaceS3 - sectorTimes[2]} Delta: ${deltaPaceS3 - sectorTimes[2]}`)
     setLastCompletedSector(3);
   }
 }, [telemetryData.current?.Time]);
@@ -291,16 +293,17 @@ const tyreWear = Array.isArray(tyreWearArray)
         
         <div className="div10">
           <p style = {{display: 'flex',alignItems: 'center',justifyContent: 'center',fontSize: (25*scaleFactor),marginTop: `${(25 * scaleFactor)}px`}}>Console:</p>
-          <TelemetryConsole messages = {messages}/>
+          <div>
+            <TelemetryConsole messages = {messages} scaleFactor = {scaleFactor}/>
+          </div>
         </div>
 
         <div className = "div11">
-          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(75*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`,marginTop: `${(20*scaleFactor)}`,marginBottom:`${(30*scaleFactor)}`}}>
-            <p><strong>Lap: </strong></p>
-            <p><strong>Lap Status: </strong></p>
+          <div style = {{display: 'flex',justifyContent: 'center',alignItems: 'center',gap:`${(75*scaleFactor)}px`,fontSize: `${(50*scaleFactor)}`,padding: `${(10*scaleFactor)}`,marginTop: `${(20*scaleFactor)}`,marginBottom:`${(0*scaleFactor)}`}}>
+            <p><strong>Lap: </strong>{telemetryData.current?.lapNumber}</p>
             <p><strong>Session Status:</strong> {telemetryData.current?.SessionStatus}</p>
           </div>
-          <p style = {{display: 'flex',alignItems: 'center',justifyContent: 'center',marginTop: `${(20*scaleFactor)}`,fontSize: (30*scaleFactor)}}><strong>Time:</strong> {telemetryData.current?.Time}</p>
+          <p style = {{display: 'flex',alignItems: 'center',justifyContent: 'center',marginTop: `${(0*scaleFactor)}`,fontSize: (30*scaleFactor)}}><strong>Time: </strong> {telemetryData.current?.Time}</p>
         </div>
       {/* Popup Forms */}
       {expectedOpen && (
@@ -313,6 +316,7 @@ const tyreWear = Array.isArray(tyreWearArray)
                   setExpectedPaceS1(((result.data))[0]);
                   setExpectedPaceS2(((result.data))[1]);
                   setExpectedPaceS3(((result.data))[2]);
+                  addMessageConsole(`New expected pace set:\n S1:${(result.data)[0]}, S2:${(result.data)[1]}, S3:${(result.data)[2]}`);
                   setExpectedOpen(false);
                 } else {
                   alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");
@@ -337,6 +341,7 @@ const tyreWear = Array.isArray(tyreWearArray)
                   setDeltaPaceS1(((result.data))[0]);
                   setDeltaPaceS2(((result.data))[1]);
                   setDeltaPaceS3(((result.data))[2]);
+                  addMessageConsole(`New delta pace set:\nS1:${(result.data)[0]}, S2:${(result.data)[1]}, S3:${(result.data)[2]}`);
                   setDeltaOpen(false);
                 } else {
                   alert("Please enter 3 valid sector times (e.g. 30.0 35.0 25.0)");

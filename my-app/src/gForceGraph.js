@@ -63,7 +63,7 @@ function GForceChart({gForce,gForceAngle}){
                         legend: { display: false },
                         title: {
                             display: true,
-                            text: 'G Force & Direction'
+                            text: ['G Force & Direction', 'Gforce: '+Math.round(gForce)+' Angle: '+Math.round(gForceAngle)]
                     }
                     },
                     scales: {

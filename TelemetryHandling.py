@@ -88,7 +88,6 @@ async def run():
         sector1 = lando['Sector1Time']
         sector2 = lando['Sector2Time']
         sector3 = lando['Sector3Time']
-
         with conn:
             data = {
                 'tyreCompound': tyreCompound,
@@ -133,6 +132,7 @@ async def run():
                                                 round(sector2.total_seconds(), 2), round(sector3.total_seconds(), 2)]
 
                 # processed["Messages"] = raceDirectorMessages.iloc[i]
+                processed["data"]["lapNumber"] = lando['LapNumber']
                 processed["data"]["SessionStatus"] = sessionStatus['Status'].iloc[1]
 
                 # Forward to FastAPI websocket

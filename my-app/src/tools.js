@@ -24,8 +24,9 @@ export function ThrottleBar({throttle}) {
 }
 
 
-export function TelemetryConsole({ messages }) {
+export function TelemetryConsole({ messages, scaleFactor }) {
   const consoleEndRef = useRef(null);
+
   useEffect(() => {
     if (consoleEndRef.current) {
       consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -33,29 +34,34 @@ export function TelemetryConsole({ messages }) {
   }, [messages]);
 
   return (
-          <div style = {{fontSize: 20}}>
-            <ul>
-              {messages.map((msg, index) => (
-                <li key={index}><p>{msg}</p></li>
-              ))}
-            </ul>
-
-          </div>
-  )
+    <div style={{ fontSize: 15 * scaleFactor }}>
+      <ul>
+        {messages.map((msg, index) => (
+          <li key={index}>
+            <p
+              style={{ whiteSpace: "pre-wrap" }}
+              dangerouslySetInnerHTML={{ __html: msg }}
+            />
+          </li>
+        ))}
+      </ul>
+      <div ref={consoleEndRef} />
+    </div>
+  );
 }
 
 
 export function DRSBool(DRS){
   if(DRS > 8){
-    if(prev == false){
-      addMessageConsole('DRS enabled')
+    if(prev === false){
+      addMessageConsole('DRS <span style="color: lime; font-weight: bold;">enabled</span>');
       prev = true
     }
     return true 
   }
   else{
-    if(prev == true){
-      addMessageConsole('DRS disabled')
+    if(prev === true){
+      addMessageConsole('DRS <span style="color: red; font-weight: bold;">disabled</span>');
       prev = false
     }
     return false
@@ -76,7 +82,7 @@ export function ParseSectorInput(input) {
 }
 
 export function CalculateSectorColour(time,delta,expected){
-  if(time >= expected){
+  if(time >= delta){
     return "purple";
   }else if(time >= expected){
     return "green";

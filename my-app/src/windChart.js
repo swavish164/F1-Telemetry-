@@ -54,25 +54,6 @@ function WindCompassChart({windDirection, windSpeed}){
                         display: true,
                         text: 'Wind:'+windSpeed+'m/s '+windDirection+'°'
                     }
-                //tooltip: {
-                //callbacks: {
-                  //  title: function(tooltipItems) {
-                    //if (tooltipItems[0].parsed.r > 0) {
-                      //  const bearing = tooltipItems[0].dataIndex;
-                        //const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-                        //const directionIndex = Math.round(bearing / 22.5) % 16;
-                        //return `${directions[directionIndex]} (${bearing}°)`;
-                    //}
-                    //return '';
-                    //},
-                    //label: function(context) {
-                    //if (context.parsed.r > 0) {
-                        //return `Wind Speed: ${context.parsed.r} m/s`;
-                    //}
-                    //return '';
-                    //}
-                //}
-                //}
             },
             scales: {
                 r: {
